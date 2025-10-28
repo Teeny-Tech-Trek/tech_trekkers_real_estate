@@ -184,111 +184,112 @@ const AppLayout = () => {
 
       {/* Main Content Area */}
       <div className="ml-80">
-        {/* Enhanced Premium Top Bar */}
-        <motion.header
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-black-200/80 shadow-sm"
+       
+       {/* 
+<motion.header
+  initial={{ y: -100, opacity: 0 }}
+  animate={{ y: 0, opacity: 1 }}
+  transition={{ type: "spring", damping: 25, stiffness: 200 }}
+  className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-black-200/80 shadow-sm"
+>
+  <div className="px-8 py-4">
+    <div className="flex items-center justify-between">
+     
+      <div className="flex-1 max-w-xl">
+        <motion.div 
+          whileFocus={{ scale: 1.02 }}
+          className="relative"
         >
-          <div className="px-8 py-4">
-            <div className="flex items-center justify-between">
-              {/* Search Bar */}
-              <div className="flex-1 max-w-xl">
-                <motion.div 
-                  whileFocus={{ scale: 1.02 }}
-                  className="relative"
-                >
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search properties, leads, avatars..."
-                    className="pl-12 pr-4 py-3 bg-white border-gray-300/60 rounded-2xl focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 transition-all duration-300 font-medium shadow-sm"
-                  />
-                </motion.div>
-              </div>
-              
-              {/* Enhanced Action Buttons - Performance Metrics */}
-              <div className="flex items-center gap-6">
-                {/* Performance Stats */}
-                <div className="flex items-center gap-6">
-                  {/* Today's Leads */}
-                  <motion.div 
-                    whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50/80 border border-emerald-200/60 cursor-pointer"
-                  >
-                    <Target className="h-4 w-4 text-emerald-600" />
-                    <div>
-                      <p className="text-xs text-emerald-700 font-medium">Today's Leads</p>
-                      <p className="text-sm font-bold text-emerald-900">{performanceData.leads}</p>
-                    </div>
-                  </motion.div>
-
-                  {/* Conversions */}
-                  <motion.div 
-                    whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50/80 border border-blue-200/60 cursor-pointer"
-                  >
-                    <TrendingUp className="h-4 w-4 text-blue-600" />
-                    <div>
-                      <p className="text-xs text-blue-700 font-medium">Conversions</p>
-                      <p className="text-sm font-bold text-blue-900">{performanceData.conversions}</p>
-                    </div>
-                  </motion.div>
-
-                  {/* Growth */}
-                  <motion.div 
-                    whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-50/80 border border-purple-200/60 cursor-pointer"
-                  >
-                    <Zap className="h-4 w-4 text-purple-600" />
-                    <div>
-                      <p className="text-xs text-purple-700 font-medium">Growth</p>
-                      <p className="text-sm font-bold text-purple-900">+{performanceData.growth}%</p>
-                    </div>
-                  </motion.div>
-                </div>
-
-                {/* Notifications and Calendar */}
-                <div className="flex items-center gap-3">
-                  {/* Calendar */}
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button variant="ghost" size="sm" className="relative p-3 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200/60 transition-all duration-300">
-                      <Calendar className="h-5 w-5 text-gray-600" />
-                    </Button>
-                  </motion.div>
-
-                  {/* Notifications */}
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button variant="ghost" size="sm" className="relative p-3 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200/60 transition-all duration-300">
-                      <Bell className="h-5 w-5 text-gray-600" />
-                      <motion.span 
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-red-500 to-red-600 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-lg border border-white"
-                      >
-                        3
-                      </motion.span>
-                    </Button>
-                  </motion.div>
-
-                  {/* Quick Action Button */}
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-600/50">
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Task
-                    </Button>
-                  </motion.div>
-                </div>
-              </div>
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search properties, leads, avatars..."
+            className="pl-12 pr-4 py-3 bg-white border-gray-300/60 rounded-2xl focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 transition-all duration-300 font-medium shadow-sm"
+          />
+        </motion.div>
+      </div>
+      
+    
+      <div className="flex items-center gap-6">
+      
+        <div className="flex items-center gap-6">
+      
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50/80 border border-emerald-200/60 cursor-pointer"
+          >
+            <Target className="h-4 w-4 text-emerald-600" />
+            <div>
+              <p className="text-xs text-emerald-700 font-medium">Today's Leads</p>
+              <p className="text-sm font-bold text-emerald-900">{performanceData.leads}</p>
             </div>
-          </div>
-        </motion.header>
+          </motion.div>
+
+       
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50/80 border border-blue-200/60 cursor-pointer"
+          >
+            <TrendingUp className="h-4 w-4 text-blue-600" />
+            <div>
+              <p className="text-xs text-blue-700 font-medium">Conversions</p>
+              <p className="text-sm font-bold text-blue-900">{performanceData.conversions}</p>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-50/80 border border-purple-200/60 cursor-pointer"
+          >
+            <Zap className="h-4 w-4 text-purple-600" />
+            <div>
+              <p className="text-xs text-purple-700 font-medium">Growth</p>
+              <p className="text-sm font-bold text-purple-900">+{performanceData.growth}%</p>
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="flex items-center gap-3">
+         
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button variant="ghost" size="sm" className="relative p-3 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200/60 transition-all duration-300">
+              <Calendar className="h-5 w-5 text-gray-600" />
+            </Button>
+          </motion.div>
+
+       
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button variant="ghost" size="sm" className="relative p-3 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200/60 transition-all duration-300">
+              <Bell className="h-5 w-5 text-gray-600" />
+              <motion.span 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-red-500 to-red-600 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-lg border border-white"
+              >
+                3
+              </motion.span>
+            </Button>
+          </motion.div>
+
+       
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-600/50">
+              <Plus className="h-4 w-4 mr-2" />
+              New Task
+            </Button>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  </div>
+</motion.header>
+*/} 
+
 
         {/* Page Content */}
-        <main className="min-h-[calc(100vh-6rem)] p-8">
+      <main className="min-h-[calc(100vh-6rem)] p-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

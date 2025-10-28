@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { BarChart3, TrendingUp, Users, DollarSign, Calendar, Target } from "lucide-react";
+import { BarChart3, TrendingUp, Users, IndianRupee , Calendar, Target } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Chart, registerables } from 'chart.js';
@@ -113,7 +113,7 @@ const Analytics: React.FC = () => {
             scales: {
               y: {
                 beginAtZero: true,
-                title: { display: true, text: 'Revenue ($)' },
+                title: { display: true, text: 'Revenue (₹)' },
               },
             },
           },
@@ -168,10 +168,13 @@ const Analytics: React.FC = () => {
   }, [agentAnalytics, conversionFunnel, loading, authLoading]);
 
   // Calculate key metrics
-  const totalRevenue = agentAnalytics.reduce((sum, agent) => {
-    const revenue = parseFloat(agent.revenue.replace(/[$,]/g, '')) || 0;
+const totalRevenue = agentAnalytics
+  .reduce((sum, agent) => {
+    const revenue = parseFloat(agent.revenue.replace(/[₹,]/g, '')) || 0;
     return sum + revenue;
-  }, 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  }, 0)
+  .toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+
 
   const totalLeads = conversionFunnel?.totalLeads || 0;
   const totalConversions = conversionFunnel?.funnel?.closed || 0;
@@ -183,7 +186,7 @@ const Analytics: React.FC = () => {
       title: "Total Revenue",
       value: totalRevenue,
       change: "+12.5%",
-      icon: DollarSign,
+      icon: IndianRupee,
       color: "text-green-600",
       bgColor: "bg-green-100",
     },
@@ -303,10 +306,10 @@ const Analytics: React.FC = () => {
                   <tr className="border-b">
                     <th className="text-left py-3 px-4 font-medium text-gray-600">Avatar</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-600">Leads</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Conversions</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Visit Scheduled</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-600">Conversion Rate</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Revenue</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Commission</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Avg Lead Score</th>
+             
                   </tr>
                 </thead>
                 <tbody>
@@ -317,12 +320,12 @@ const Analytics: React.FC = () => {
                       <tr key={index} className="border-b hover:bg-gray-50">
                         <td className="py-3 px-4 font-medium">{avatar.name}</td>
                         <td className="py-3 px-4">{avatar.leadsGenerated}</td>
-                        <td className="py-3 px-4">{conversions}</td>
+                        <td className="py-3 px-4">{avatar.visitsScheduled}</td>
                         <td className="py-3 px-4">
                           <Badge variant="secondary">{avatar.conversionRate.toFixed(1)}%</Badge>
                         </td>
-                        <td className="py-3 px-4 font-medium text-green-600">{avatar.revenue}</td>
-                        <td className="py-3 px-4 text-blue-600">${commission}</td>
+                        <td className="py-3 px-4 font-medium text-green-600">{avatar.avgLeadScore}</td>
+                      
                       </tr>
                     );
                   })}

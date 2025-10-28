@@ -678,7 +678,7 @@ const Settings = () => {
                 </div>
 
                 {/* Usage Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Agents</span>
@@ -686,13 +686,13 @@ const Settings = () => {
                     </div>
                     <Progress value={billingInfo.usage.agents.percent} />
                   </div>
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Properties</span>
                       <span>{billingInfo.usage.properties.used}/{billingInfo.usage.properties.limit}</span>
                     </div>
                     <Progress value={billingInfo.usage.properties.percent} />
-                  </div>
+                  </div> */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Team Members</span>

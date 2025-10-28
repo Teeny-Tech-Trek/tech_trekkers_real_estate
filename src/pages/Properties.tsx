@@ -484,7 +484,7 @@ const handleSaveProperty = async (propertyData: Property, files: File[], deleted
                             <span className="truncate">{property.location}</span>
                           </CardDescription>
                         </div>
-                        <span className="text-xl font-bold text-green-600 ml-2">{property.price}</span>
+                        <span className="text-xl font-bold text-green-600 ml-2">₹ {property.price}</span>
                       </div>
                     </CardHeader>
 
@@ -1093,7 +1093,7 @@ const PropertyFormModal = ({ isOpen, onClose, mode, initialData, onSave }) => {
                 <Label>Price *</Label>
                 <Input
                   name="price"
-                  placeholder="$2,500,000"
+                   placeholder="₹55,00,000"
                   value={propertyData.price}
                   onChange={handleChange}
                 />
