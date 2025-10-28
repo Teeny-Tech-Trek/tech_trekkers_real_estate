@@ -572,7 +572,7 @@ export default function AgentChatPage(): JSX.Element {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                    placeholder="Ask about properties, locations, budget, or schedule a visit..."
+                    placeholder=""
                     className="w-full bg-white border-2 border-gray-200 rounded-3xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 placeholder-gray-400 shadow-sm text-sm transition-all duration-200"
                     disabled={isLoading}
                   />
