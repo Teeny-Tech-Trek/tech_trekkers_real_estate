@@ -1,6 +1,6 @@
 // src/pages/Avatars.tsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Eye, Power, MoreHorizontal, X, Save, QrCode, MessageSquare, Calendar, Download, RefreshCw } from 'lucide-react';
+import { Plus, Edit, Eye, Power, MoreHorizontal, X, Save, QrCode, MessageSquare, Calendar, Download, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { fetchAgents, createAgent, toggleAgentStatus, deleteAgent, generateQRCode } from '@/services/agentApi';
 import { Agent } from '@/types/agent';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+import { PlanLimitAlert } from '@/hooks/PlanLimitAlert';
 
 interface CreateAgentData {
   name: string;
@@ -50,6 +52,7 @@ const Avatars = () => {
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const limits = usePlanLimits();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -85,6 +88,16 @@ const Avatars = () => {
   };
 
   const handleCreateAgent = async () => {
+    // Check plan limits before creating
+    if (!limits.canCreateAgent) {
+      toast({
+        title: "Agent limit reached",
+        description: "Please upgrade your plan to create more agents",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setError(null);
       const agent = await createAgent(newAgent);
@@ -97,12 +110,16 @@ const Avatars = () => {
         avatar: '',
         description: '',
       });
+      
+      // Refresh limits after creating agent
+      limits.refreshLimits();
+      
       toast({
         title: 'Success',
         description: `Agent ${agent.name} created successfully`,
       });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create agent';
+    } catch (err: any) {
+      const message = err.response?.data?.error || err.message || 'Failed to create agent';
       setError(message);
       toast({
         title: 'Error',
@@ -141,6 +158,10 @@ const Avatars = () => {
       setError(null);
       await deleteAgent(agentId);
       setAgents((prev) => prev.filter((agent) => agent._id !== agentId));
+      
+      // Refresh limits after deleting agent
+      limits.refreshLimits();
+      
       toast({
         title: 'Success',
         description: 'Agent deleted successfully',
@@ -250,6 +271,11 @@ const Avatars = () => {
             <p className="text-slate-600 mt-1">Manage your AI sales agents and their performance</p>
           </div>
           <div className="flex items-center gap-3">
+            {/* Plan Usage Badge */}
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+              {limits.agents.used}/{limits.agents.limit} Agents Used
+            </Badge>
+            
             <Button
               variant="outline"
               onClick={fetchAgentsData}
@@ -261,7 +287,7 @@ const Avatars = () => {
             <Button
               className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/25"
               onClick={() => setIsCreateModalOpen(true)}
-              disabled={user.role !== 'admin' && user.role !== 'owner'}
+              disabled={!limits.canCreateAgent || (user.role !== 'admin' && user.role !== 'owner')}
             >
               <Plus size={16} />
               Create New Agent
@@ -275,6 +301,26 @@ const Avatars = () => {
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Plan Limit Alert */}
+        {!limits.canCreateAgent && (
+          <PlanLimitAlert
+            type="agent"
+            current={limits.agents.used}
+            limit={limits.agents.limit}
+            planName={limits.planName}
+          />
+        )}
+
+        {/* Low Limit Warning */}
+        {limits.canCreateAgent && limits.agents.remaining <= 2 && limits.agents.remaining > 0 && (
+          <Alert className="mb-6 border-amber-200 bg-amber-50">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-700">
+              <strong>Agent limit approaching:</strong> You have {limits.agents.remaining} agent{limits.agents.remaining === 1 ? '' : 's'} remaining on your {limits.planName} plan.
+            </AlertDescription>
           </Alert>
         )}
 
@@ -494,11 +540,22 @@ const Avatars = () => {
             <Button
               onClick={() => setIsCreateModalOpen(true)}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              disabled={user.role !== 'admin' && user.role !== 'owner'}
+              disabled={!limits.canCreateAgent || (user.role !== 'admin' && user.role !== 'owner')}
             >
               <Plus size={16} className="mr-2" />
               Create Your First Agent
             </Button>
+            
+            {!limits.canCreateAgent && (
+              <div className="mt-4 max-w-md mx-auto">
+                <PlanLimitAlert
+                  type="agent"
+                  current={limits.agents.used}
+                  limit={limits.agents.limit}
+                  planName={limits.planName}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -514,6 +571,15 @@ const Avatars = () => {
               Configure your AI sales agent with personality, voice, and description.
             </DialogDescription>
           </DialogHeader>
+
+          {/* Plan Usage Info in Modal */}
+          {limits.canCreateAgent && (
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertDescription className="text-blue-700">
+                <strong>Plan Usage:</strong> You have {limits.agents.remaining} agent{limits.agents.remaining === 1 ? '' : 's'} remaining on your {limits.planName} plan.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="space-y-6 mt-4">
             <div className="grid grid-cols-1 gap-4">
@@ -613,7 +679,7 @@ const Avatars = () => {
                 type="button"
                 className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 onClick={handleCreateAgent}
-                disabled={!newAgent.name || !newAgent.personality || !newAgent.description}
+                disabled={!limits.canCreateAgent || !newAgent.name || !newAgent.personality || !newAgent.description}
               >
                 <Save size={16} className="mr-2" />
                 Create Agent

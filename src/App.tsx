@@ -19,6 +19,7 @@ import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import AgentChatPage from "./pages/AgentChatPage";
 import ErrorBoundary from "./pages/ErrorBoundary";
+import AcceptInvitePage from "./pages/AcceptInvitePage";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+              <Route path="/accept-invite" element={<AcceptInvitePage />} />
              <Route path="/agent/:id" element={<AgentChatPage />} />
             <Route path="/" element={
               <ProtectedRoute>
