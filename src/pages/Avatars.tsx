@@ -462,14 +462,7 @@ const Avatars = () => {
                           <QrCode size={14} className="mr-2" />
                           Generate QR Code
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit size={14} className="mr-2" />
-                          Edit Agent
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Eye size={14} className="mr-2" />
-                          View Public Page
-                        </DropdownMenuItem>
+                       
                         <DropdownMenuItem onClick={() => handleToggleAgentStatus(agent._id)}>
                           <Power size={14} className="mr-2" />
                           {agent.status === 'active' ? 'Pause' : 'Activate'}
