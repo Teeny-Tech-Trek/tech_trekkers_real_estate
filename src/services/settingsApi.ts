@@ -208,7 +208,7 @@ export const getOrganization = async (): Promise<Organization> => {
 };
 
 export const updateOrganization = async (data: { name: string; billing: any }): Promise<Organization> => {
-  const response = await settingsApi.put('/settings/organization', data);
+  const response = await settingsApi.put('/settings/organization/update', data);
   return response.data;
 };
 
