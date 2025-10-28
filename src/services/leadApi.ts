@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { ApiLead, ApiVisit, Lead, Visit, mapApiLeadToLead, mapApiVisitToVisit } from '../types/lead';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.estate.techtrekkers.ai/api';
 
 // Axios instance for lead and visit-related requests
 const leadApi = axios.create({

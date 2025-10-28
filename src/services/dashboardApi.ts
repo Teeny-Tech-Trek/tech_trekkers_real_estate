@@ -1,7 +1,7 @@
 // src/services/dashboardApi.ts
 import axios, { AxiosError } from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.estate.techtrekkers.ai/api';
 
 const dashboardApi = axios.create({
   baseURL: `${API_URL}/dashboard`,

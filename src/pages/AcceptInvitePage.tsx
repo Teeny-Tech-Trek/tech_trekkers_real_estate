@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  import.meta.env.VITE_API_URL || "https://api.estate.techtrekkers.ai/api";
 
 const AcceptInvitePage: React.FC = () => {
   const [firstName, setFirstName] = useState<string>("");

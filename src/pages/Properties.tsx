@@ -437,7 +437,7 @@ const handleSaveProperty = async (propertyData: Property, files: File[], deleted
                 <img
   src={
     property.images && property.images[0]
-      ? `http://localhost:5000${encodeURI(property.images[0])}`
+      ? `https://api.estate.techtrekkers.ai${encodeURI(property.images[0])}`
       : "/placeholder-image.jpg"
   }
   alt={property.title}
@@ -572,7 +572,7 @@ const handleSaveProperty = async (propertyData: Property, files: File[], deleted
          <img
   src={
     property.images && property.images[0]
-      ? `http://localhost:5000${encodeURI(property.images[0])}`
+      ? `https://api.estate.techtrekkers.ai${encodeURI(property.images[0])}`
       : "/placeholder-image.jpg"
   }
   alt={property.title}
@@ -726,7 +726,7 @@ const handleSaveProperty = async (propertyData: Property, files: File[], deleted
             <img
   src={
     selectedProperty.images && selectedProperty.images[currentImageIndex]
-      ? `http://localhost:5000${encodeURI(selectedProperty.images[currentImageIndex])}`
+      ? `https://api.estate.techtrekkers.ai${encodeURI(selectedProperty.images[currentImageIndex])}`
       : "/placeholder-image.jpg"
   }
   alt={selectedProperty.title}
