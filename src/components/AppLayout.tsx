@@ -72,7 +72,7 @@ const AppLayout = () => {
                 </div>
               </div>
               <div className="flex-1">
-                <h2 className="font-bold text-gray-900 text-xl font-display tracking-tight">VirtualSales Pro</h2>
+                <h2 className="font-bold text-gray-900 text-xl font-display tracking-tight">Estate AI</h2>
                 <p className="text-xs text-gray-500 font-medium bg-gradient-to-r from-blue-600/10 to-cyan-600/10 px-2 py-1 rounded-full inline-block">
                   AI Real Estate Platform
                 </p>
