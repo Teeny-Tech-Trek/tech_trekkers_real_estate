@@ -2,10 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
+import Navbar from "@/components/Navbar";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Avatars from "./pages/Avatars";
@@ -20,8 +21,20 @@ import NotFound from "./pages/NotFound";
 import AgentChatPage from "./pages/AgentChatPage";
 import ErrorBoundary from "./pages/ErrorBoundary";
 import AcceptInvitePage from "./pages/AcceptInvitePage";
+import Footer from "./components/Footer";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -30,30 +43,52 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-              <Route path="/accept-invite" element={<AcceptInvitePage />} />
-             <Route path="/agent/:id" element={<AgentChatPage />} />
+            <Route path="/pricing" element={
+              <>
+                <Navbar />
+                <Pricing />
+                <Footer />
+              </>
+            } />
+            <Route path="/login" element={
+              <>
+                <Navbar />
+                <Login />
+                    <Footer />
+              </>
+            } />
+            <Route path="/signup" element={
+              <>
+                <Navbar />
+                <Signup />
+                    <Footer />
+              </>
+            } />
+            <Route path="/accept-invite" element={<AcceptInvitePage />} />
+            <Route path="/agent/:id" element={<AgentChatPage />} />
             <Route path="/" element={
               <ProtectedRoute>
-                <AppLayout />
+                <>
+                  <Navbar />
+                  <AppLayout />
+                </>
               </ProtectedRoute>
             }>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="avatars" element={<Avatars />} />
               <Route path="properties" element={<Properties />} />
               <Route path="leads" element={<Leads />} />
-            <Route
-    path="analytics"
-    element={
-      <ErrorBoundary>
-        <Analytics />
-      </ErrorBoundary>
-    }
-  />
+              <Route
+                path="analytics"
+                element={
+                  <ErrorBoundary>
+                    <Analytics />
+                  </ErrorBoundary>
+                }
+              />
               <Route path="settings" element={<Settings />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
