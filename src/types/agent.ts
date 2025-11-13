@@ -9,7 +9,8 @@ export interface Agent {
   conversions: number;
   revenue: string;
   conversionRate: string;
-  avatar: string;
+  avatar: string; // Initials (e.g., "SJ")
+  avatarUrl?: string; // URL of uploaded image (optional)
   description: string;
   organization: string;
   createdBy: string;

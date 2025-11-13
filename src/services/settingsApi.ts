@@ -74,6 +74,7 @@ export interface TeamMember {
   joinedAt: string;
 }
 
+
 export interface Invite {
   _id: string;
   email: string;
@@ -114,38 +115,30 @@ export interface BillingInfo {
   plan: {
     name: string;
     price: number;
-    agentsLimit: number;
-    propertiesLimit: number;
     seats: number;
   };
-  billing: {
-    status: string;
-    currentPeriodStart?: string;
-    currentPeriodEnd?: string;
-    invoices: any[];
-  };
   usage: {
-    agents: {
-      used: number;
-      limit: number;
-      percent: number;
-    };
-    properties: {
-      used: number;
-      limit: number;
-      percent: number;
-    };
-    members: {
-      used: number;
-      limit: number;
-      percent: number;
-    };
+    agents: { used: number; limit: number; percent: number };
+    members: { used: number; limit: number; percent: number };
   };
   pricingTiers: {
-    free: any;
-    pro: any;
-    enterprise: any;
+    [key: string]: {
+      name: string;
+      price: number;
+      agentsLimit: number;
+      propertiesLimit: number;
+      seats: number;
+    };
   };
+  paymentHistory?: Array<{
+    paymentId: string;
+    orderId: string;
+    planId: string;
+    amount: number;
+    currency: string;
+    status: string;
+    createdAt: Date;
+  }>;
 }
 
 export interface Integration {
@@ -247,9 +240,17 @@ export const getBillingInfo = async (): Promise<BillingInfo> => {
   return response.data;
 };
 
-export const updateSubscription = async (planId: string): Promise<{ message: string; plan: any }> => {
-  const response = await settingsApi.post('/settings/billing/subscribe', { planId });
-  return response.data;
+export const updateSubscription = async (organizationId: string, planId: string) => {
+  const response = await fetch(`/api/settings/update-subscription`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ organizationId, planId }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to update subscription");
+  }
+  return response.json();
 };
 
 export const getInvoices = async (): Promise<any[]> => {
