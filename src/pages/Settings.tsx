@@ -1,7 +1,7 @@
 // src/components/Settings.tsx
 import React, { useState, useEffect } from "react";
-import { 
-  User, Bell, CreditCard, Shield, Zap, Users, Database, Globe, 
+import {
+  User, Bell, CreditCard, Shield, Zap, Users, Database, Globe,
   Mail, Plus, MoreVertical, Loader2, AlertCircle, CheckCircle2,
   Building, MapPin, Phone, FileText
 } from "lucide-react";
@@ -19,14 +19,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { 
+import {
   getOrganization,
   updateOrganization,
-  getTeamMembers, 
-  getPendingInvites, 
-  inviteMember, 
-  revokeInvite, 
-  removeTeamMember, 
+  getTeamMembers,
+  getPendingInvites,
+  inviteMember,
+  revokeInvite,
+  removeTeamMember,
   updateMemberRole,
   getBillingInfo,
   updateSubscription,
@@ -46,6 +46,7 @@ import {
   ZillowCredentials,
   RealtorCredentials
 } from "@/services/settingsApi";
+import axios from "axios";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -55,11 +56,11 @@ const Settings = () => {
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings | null>(null);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("member");
-  
+
   // Form states
   const [orgForm, setOrgForm] = useState({
     name: "",
@@ -103,11 +104,11 @@ const Settings = () => {
     try {
       setIsLoading(true);
       const [
-        orgData, 
-        membersData, 
-        invitesData, 
-        billingData, 
-        integrationsData, 
+        orgData,
+        membersData,
+        invitesData,
+        billingData,
+        integrationsData,
         notificationsData
       ] = await Promise.all([
         getOrganization(),
@@ -125,16 +126,15 @@ const Settings = () => {
       setIntegrations(integrationsData);
       setNotificationSettings(notificationsData);
 
-      // Initialize form with organization data
-    setOrgForm({
-  name: orgData.name,
-  billing: {
-    companyName: orgData.billing?.companyName || "",
-    address: orgData.billing?.address || "",
-    phone: orgData.billing?.phone || "",
-    realEstateLicense: orgData.billing?.realEstateLicense || ""
-  }
-});
+      setOrgForm({
+        name: orgData.name,
+        billing: {
+          companyName: orgData.billing?.companyName || "",
+          address: orgData.billing?.address || "",
+          phone: orgData.billing?.phone || "",
+          realEstateLicense: orgData.billing?.realEstateLicense || ""
+        }
+      });
 
     } catch (error) {
       toast({
@@ -264,6 +264,85 @@ const Settings = () => {
     }
   };
 
+  // Razorpay Payment Handler
+  const handleRazorpayPayment = async (planId: string) => {
+    try {
+      // Load Razorpay SDK
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      document.body.appendChild(script);
+
+      // Create order via backend
+      const response = await axios.post("/api/payments/create-order", {
+        planId,
+        organizationId: organization?._id,
+        amount: billingInfo?.pricingTiers[planId].price * 100, // Convert to paisa
+        currency: "INR",
+      });
+
+      const { orderId, amount, currency, keyId } = response.data;
+
+      // Razorpay options
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: currency,
+        name: "Real Estate Platform",
+        description: `Subscription for ${planId} plan`,
+        order_id: orderId,
+        handler: async function (response: any) {
+          try {
+            // Verify payment
+            const verifyResponse = await axios.post("/api/payments/verify-payment", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              planId,
+              organizationId: organization?._id,
+            });
+
+            if (verifyResponse.data.success) {
+              toast({
+                title: "Success",
+                description: "Payment successful! Subscription updated.",
+              });
+              await handleUpdateSubscription(planId);
+            } else {
+              toast({
+                title: "Error",
+                description: "Payment verification failed.",
+                variant: "destructive",
+              });
+            }
+          } catch (error: any) {
+            toast({
+              title: "Error",
+              description: error.response?.data?.error || "Payment verification failed",
+              variant: "destructive",
+            });
+          }
+        },
+        prefill: {
+          name: orgForm.name,
+          contact: orgForm.billing.phone || "",
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || "Failed to initiate payment",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleConnectZillow = async () => {
     try {
       await connectZillow(zillowCredentials);
@@ -388,7 +467,7 @@ const Settings = () => {
       member: { label: "Member", variant: "default" as const },
       agent: { label: "Agent", variant: "secondary" as const }
     };
-    
+
     const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.member;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -399,7 +478,7 @@ const Settings = () => {
       pro: { label: "Pro", variant: "default" as const },
       enterprise: { label: "Enterprise", variant: "destructive" as const }
     };
-    
+
     const config = planConfig[planName as keyof typeof planConfig] || planConfig.free;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -439,52 +518,52 @@ const Settings = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="orgName">Organization Name</Label>
-                <Input 
-                  id="orgName" 
+                <Input
+                  id="orgName"
                   value={orgForm.name}
                   onChange={(e) => setOrgForm(prev => ({ ...prev, name: e.target.value }))}
                 />
               </div>
               <div>
                 <Label htmlFor="companyName">Company Legal Name</Label>
-                <Input 
-                  id="companyName" 
+                <Input
+                  id="companyName"
                   value={orgForm.billing.companyName}
-                  onChange={(e) => setOrgForm(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setOrgForm(prev => ({
+                    ...prev,
                     billing: { ...prev.billing, companyName: e.target.value }
                   }))}
                 />
               </div>
               <div>
                 <Label htmlFor="address">Business Address</Label>
-                <Input 
-                  id="address" 
+                <Input
+                  id="address"
                   value={orgForm.billing.address}
-                  onChange={(e) => setOrgForm(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setOrgForm(prev => ({
+                    ...prev,
                     billing: { ...prev.billing, address: e.target.value }
                   }))}
                 />
               </div>
               <div>
                 <Label htmlFor="phone">Business Phone</Label>
-                <Input 
-                  id="phone" 
+                <Input
+                  id="phone"
                   value={orgForm.billing.phone}
-                  onChange={(e) => setOrgForm(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setOrgForm(prev => ({
+                    ...prev,
                     billing: { ...prev.billing, phone: e.target.value }
                   }))}
                 />
               </div>
               <div>
                 <Label htmlFor="license">Real Estate License</Label>
-                <Input 
-                  id="license" 
+                <Input
+                  id="license"
                   value={orgForm.billing.realEstateLicense}
-                  onChange={(e) => setOrgForm(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setOrgForm(prev => ({
+                    ...prev,
                     billing: { ...prev.billing, realEstateLicense: e.target.value }
                   }))}
                 />
@@ -506,7 +585,6 @@ const Settings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Invite Member Dialog */}
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="flex items-center gap-2">
@@ -541,7 +619,6 @@ const Settings = () => {
                       <SelectContent>
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="member">Team Member</SelectItem>
-                    
                       </SelectContent>
                     </Select>
                   </div>
@@ -552,7 +629,6 @@ const Settings = () => {
               </DialogContent>
             </Dialog>
 
-            {/* Team Members Table */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Team Members ({teamMembers.length})</h3>
               <Table>
@@ -622,7 +698,6 @@ const Settings = () => {
               </Table>
             </div>
 
-            {/* Pending Invites */}
             {pendingInvites.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold mb-4">Pending Invites</h3>
@@ -632,7 +707,7 @@ const Settings = () => {
                       <div>
                         <p className="font-medium">{invite.email}</p>
                         <p className="text-sm text-gray-600">
-                          Invited by {invite.invitedBy.firstName} {invite.invitedBy.lastName} • 
+                          Invited by {invite.invitedBy.firstName} {invite.invitedBy.lastName} •
                           Expires {new Date(invite.expiresAt).toLocaleDateString()}
                         </p>
                       </div>
@@ -666,7 +741,6 @@ const Settings = () => {
           <CardContent className="space-y-6">
             {billingInfo && (
               <>
-                {/* Current Plan */}
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="font-medium">Current Plan: {billingInfo.plan.name.charAt(0).toUpperCase() + billingInfo.plan.name.slice(1)}</p>
@@ -677,7 +751,6 @@ const Settings = () => {
                   {getPlanBadge(billingInfo.plan.name)}
                 </div>
 
-                {/* Usage Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
@@ -686,13 +759,6 @@ const Settings = () => {
                     </div>
                     <Progress value={billingInfo.usage.agents.percent} />
                   </div>
-                  {/* <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Properties</span>
-                      <span>{billingInfo.usage.properties.used}/{billingInfo.usage.properties.limit}</span>
-                    </div>
-                    <Progress value={billingInfo.usage.properties.percent} />
-                  </div> */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Team Members</span>
@@ -702,14 +768,12 @@ const Settings = () => {
                   </div>
                 </div>
 
-                {/* Pricing Tiers */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {Object.entries(billingInfo.pricingTiers).map(([planKey, plan]) => (
                     <Card key={planKey} className={
-                      `border-2 ${
-                        billingInfo.plan.name === planKey 
-                          ? 'border-primary shadow-md' 
-                          : 'border-gray-200'
+                      `border-2 ${billingInfo.plan.name === planKey
+                        ? 'border-primary shadow-md'
+                        : 'border-gray-200'
                       }`
                     }>
                       <CardHeader>
@@ -734,10 +798,13 @@ const Settings = () => {
                             <span>{plan.seats === 1000 ? 'Unlimited' : plan.seats} Team Members</span>
                           </div>
                         </div>
-                        <Button 
+                        <Button
                           className="w-full mt-4"
                           variant={billingInfo.plan.name === planKey ? "outline" : "default"}
-                          onClick={() => handleUpdateSubscription(planKey)}
+                          onClick={() => {
+                            if (billingInfo.plan.name === planKey) return;
+                            handleRazorpayPayment(planKey); // Initiate Razorpay payment
+                          }}
                           disabled={billingInfo.plan.name === planKey}
                         >
                           {billingInfo.plan.name === planKey ? 'Current Plan' : 'Upgrade'}
@@ -773,7 +840,7 @@ const Settings = () => {
                   <TabsTrigger value="push">Push</TabsTrigger>
                   <TabsTrigger value="sms">SMS</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="email" className="space-y-4">
                   {Object.entries(notificationSettings.emailNotifications).map(([key, value]) => (
                     <div key={key} className="flex items-center justify-between">
@@ -790,7 +857,7 @@ const Settings = () => {
                           {key === 'systemUpdates' && 'Important system and feature updates'}
                         </p>
                       </div>
-                      <Switch 
+                      <Switch
                         checked={value}
                         onCheckedChange={(checked) => handleUpdateNotificationSettings('emailNotifications', {
                           ...notificationSettings.emailNotifications,
@@ -814,7 +881,7 @@ const Settings = () => {
                           {key === 'bookingReminders' && 'Reminders for upcoming appointments'}
                         </p>
                       </div>
-                      <Switch 
+                      <Switch
                         checked={value}
                         onCheckedChange={(checked) => handleUpdateNotificationSettings('pushNotifications', {
                           ...notificationSettings.pushNotifications,
@@ -838,7 +905,7 @@ const Settings = () => {
                           {key === 'offerDeadlines' && 'Alerts for offer expirations'}
                         </p>
                       </div>
-                      <Switch 
+                      <Switch
                         checked={value}
                         onCheckedChange={(checked) => handleUpdateNotificationSettings('smsNotifications', {
                           ...notificationSettings.smsNotifications,
@@ -881,14 +948,14 @@ const Settings = () => {
                   <div className="flex gap-2">
                     {integration.status === 'connected' ? (
                       <>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleSyncIntegration(integration.type)}
                         >
                           Sync
                         </Button>
-                        <Button 
+                        <Button
                           variant="destructive"
                           size="sm"
                           onClick={() => handleDisconnectIntegration(integration.type)}
@@ -897,7 +964,7 @@ const Settings = () => {
                         </Button>
                       </>
                     ) : (
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={() => {
                           if (integration.type === 'zillow') setZillowDialogOpen(true);

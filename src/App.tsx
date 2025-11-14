@@ -48,7 +48,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/pricing" element={
               <>
-                <Navbar />
+               
                 <Pricing />
                 <Footer />
               </>
@@ -72,7 +72,7 @@ const App = () => (
             <Route path="/" element={
               <ProtectedRoute>
                 <>
-                  <Navbar />
+                
                   <AppLayout />
                 </>
               </ProtectedRoute>

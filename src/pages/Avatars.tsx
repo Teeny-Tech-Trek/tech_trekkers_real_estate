@@ -29,6 +29,7 @@ interface CreateAgentData {
   personality: string;
   voice: string;
   avatar: string;
+  avatarFile?: File | null;
   description: string;
 }
 
@@ -40,12 +41,16 @@ const Avatars = () => {
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   const [newAgent, setNewAgent] = useState<CreateAgentData>({
     name: '',
     personality: '',
     voice: 'male-1',
     avatar: '',
+    avatarFile: null,
     description: '',
   });
 
@@ -53,6 +58,15 @@ const Avatars = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const limits = usePlanLimits();
+
+  // Cleanup avatar preview URL
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -74,6 +88,7 @@ const Avatars = () => {
       setError(null);
       const data = await fetchAgents();
       setAgents(data);
+      console.log('Fetched agents:', data);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load agents';
       setError(message);
@@ -87,20 +102,58 @@ const Avatars = () => {
     }
   };
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setAvatarError(null);
+    if (file) {
+      if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+        setAvatarError('Please upload a JPEG, PNG, or GIF image.');
+        toast({
+          title: 'Invalid File Type',
+          description: 'Please upload a JPEG, PNG, or GIF image.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setAvatarError('Image size must be less than 5MB.');
+        toast({
+          title: 'File Too Large',
+          description: 'Image size must be less than 5MB.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      setNewAgent({ ...newAgent, avatarFile: file });
+      const previewUrl = URL.createObjectURL(file);
+      setAvatarPreview(previewUrl);
+    }
+  };
+
   const handleCreateAgent = async () => {
-    // Check plan limits before creating
     if (!limits.canCreateAgent) {
       toast({
-        title: "Agent limit reached",
-        description: "Please upgrade your plan to create more agents",
-        variant: "destructive",
+        title: 'Agent limit reached',
+        description: 'Please upgrade your plan to create more agents',
+        variant: 'destructive',
       });
       return;
     }
 
+    setIsCreating(true);
     try {
       setError(null);
-      const agent = await createAgent(newAgent);
+      const formData = new FormData();
+      formData.append('name', newAgent.name);
+      formData.append('personality', newAgent.personality);
+      formData.append('voice', newAgent.voice);
+      formData.append('avatar', newAgent.avatarFile ? '' : newAgent.avatar); // Clear initials if file is uploaded
+      formData.append('description', newAgent.description);
+      if (newAgent.avatarFile) {
+        formData.append('avatarFile', newAgent.avatarFile);
+      }
+
+      const agent = await createAgent(formData);
       setAgents((prev) => [...prev, agent]);
       setIsCreateModalOpen(false);
       setNewAgent({
@@ -108,12 +161,12 @@ const Avatars = () => {
         personality: '',
         voice: 'male-1',
         avatar: '',
+        avatarFile: null,
         description: '',
       });
-      
-      // Refresh limits after creating agent
+      setAvatarPreview(null);
+      setAvatarError(null);
       limits.refreshLimits();
-      
       toast({
         title: 'Success',
         description: `Agent ${agent.name} created successfully`,
@@ -126,6 +179,8 @@ const Avatars = () => {
         description: message,
         variant: 'destructive',
       });
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -158,10 +213,7 @@ const Avatars = () => {
       setError(null);
       await deleteAgent(agentId);
       setAgents((prev) => prev.filter((agent) => agent._id !== agentId));
-      
-      // Refresh limits after deleting agent
       limits.refreshLimits();
-      
       toast({
         title: 'Success',
         description: 'Agent deleted successfully',
@@ -301,6 +353,7 @@ const Avatars = () => {
               className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transition-all"
               onClick={() => setIsCreateModalOpen(true)}
               disabled={!limits.canCreateAgent || (user.role !== 'admin' && user.role !== 'owner')}
+              aria-label="Create new AI agent"
             >
               <Plus size={16} />
               Create New Agent
@@ -407,8 +460,6 @@ const Avatars = () => {
               </div>
             </CardContent>
           </Card>
-
-          
         </motion.div>
 
         {/* Agent Grid */}
@@ -432,12 +483,26 @@ const Avatars = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="relative">
-                        <motion.div
-                          whileHover={{ scale: 1.1, rotate: 5 }}
-                          className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg"
-                        >
-                          {agent.avatar || agent.name.charAt(0)}
-                        </motion.div>
+                        {agent.avatarUrl ? (
+                          <motion.div
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg"
+                          >
+                            <img
+  src={`https://api.estate.techtrekkers.ai${agent.avatarUrl}`}
+  alt={agent.name}
+  className="w-full h-full object-cover"
+/>
+
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg"
+                          >
+                            {agent.avatar || agent.name.charAt(0)}
+                          </motion.div>
+                        )}
                         <div
                           className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white bg-gradient-to-r ${getStatusColor(agent.status)} shadow-sm`}
                         ></div>
@@ -453,6 +518,7 @@ const Avatars = () => {
                           variant="ghost"
                           size="sm"
                           className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                          aria-label="More options"
                         >
                           <MoreHorizontal size={16} />
                         </Button>
@@ -462,7 +528,6 @@ const Avatars = () => {
                           <QrCode size={14} className="mr-2" />
                           Generate QR Code
                         </DropdownMenuItem>
-                       
                         <DropdownMenuItem onClick={() => handleToggleAgentStatus(agent._id)}>
                           <Power size={14} className="mr-2" />
                           {agent.status === 'active' ? 'Pause' : 'Activate'}
@@ -518,19 +583,14 @@ const Avatars = () => {
                     </div>
                     <div className="flex justify-between items-center text-sm p-2.5 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100/50">
                       <span className="text-gray-600 font-medium">Last Update</span>
-                    <span className="font-bold text-purple-600">
-  {new Date(agent.updatedAt).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  })}
-</span>
-
+                      <span className="font-bold text-purple-600">
+                        {new Date(agent.updatedAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
+                      </span>
                     </div>
-                    {/* <div className="flex justify-between items-center text-sm p-2.5 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100/50">
-                      <span className="text-gray-600 font-medium">Revenue</span>
-                      <span className="font-bold text-orange-600">{agent.revenue}</span>
-                    </div> */}
                   </div>
 
                   <div className="flex gap-2">
@@ -539,6 +599,7 @@ const Avatars = () => {
                       size="sm"
                       className="flex-1 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
                       onClick={() => handleGenerateQRCode(agent._id)}
+                      aria-label="Generate QR code"
                     >
                       <QrCode size={14} className="mr-1" />
                       QR Code
@@ -548,6 +609,7 @@ const Avatars = () => {
                       size="sm"
                       className="flex-1 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
                       onClick={() => handleToggleAgentStatus(agent._id)}
+                      aria-label={agent.status === 'active' ? 'Pause agent' : 'Activate agent'}
                     >
                       <Power size={14} className="mr-1" />
                       {agent.status === 'active' ? 'Pause' : 'Activate'}
@@ -574,6 +636,7 @@ const Avatars = () => {
               onClick={() => setIsCreateModalOpen(true)}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/30"
               disabled={!limits.canCreateAgent || (user.role !== 'admin' && user.role !== 'owner')}
+              aria-label="Create your first AI agent"
             >
               <Plus size={16} className="mr-2" />
               Create Your First Agent
@@ -594,7 +657,21 @@ const Avatars = () => {
       </div>
 
       {/* Create Agent Modal */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+      <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
+        setIsCreateModalOpen(open);
+        if (!open) {
+          setAvatarPreview(null);
+          setAvatarError(null);
+          setNewAgent({
+            name: '',
+            personality: '',
+            voice: 'male-1',
+            avatar: '',
+            avatarFile: null,
+            description: '',
+          });
+        }
+      }}>
         <DialogContent className="max-w-2xl bg-white/95 backdrop-blur-xl border-0 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
@@ -616,6 +693,13 @@ const Avatars = () => {
             </Alert>
           )}
 
+          {/* Error in Modal */}
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-5 mt-4">
             <div className="grid grid-cols-1 gap-4">
               <div>
@@ -628,6 +712,7 @@ const Avatars = () => {
                   onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
                   placeholder="Enter agent name"
                   className="mt-1.5 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  aria-required="true"
                 />
               </div>
 
@@ -639,7 +724,7 @@ const Avatars = () => {
                   value={newAgent.personality}
                   onValueChange={(value) => setNewAgent({ ...newAgent, personality: value })}
                 >
-                  <SelectTrigger className="mt-1.5 border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                  <SelectTrigger className="mt-1.5 border-gray-300 focus:border-blue-500 focus:ring-blue-500" aria-required="true">
                     <SelectValue placeholder="Select personality type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -688,6 +773,32 @@ const Avatars = () => {
               </div>
 
               <div>
+                <Label htmlFor="avatarFile" className="text-gray-700 font-medium">
+                  Avatar Image
+                </Label>
+                <Input
+                  id="avatarFile"
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif"
+                  onChange={handleAvatarChange}
+                  className="mt-1.5 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  aria-describedby="avatarError"
+                />
+                {avatarError && (
+                  <p id="avatarError" className="text-red-500 text-sm mt-1">{avatarError}</p>
+                )}
+                {avatarPreview && (
+                  <div className="mt-2">
+                    <img
+                      src={avatarPreview}
+                      alt="Avatar Preview"
+                      className="w-24 h-24 rounded-xl object-cover shadow-md"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div>
                 <Label htmlFor="description" className="text-gray-700 font-medium">
                   Role *
                 </Label>
@@ -697,6 +808,7 @@ const Avatars = () => {
                   onChange={(e) => setNewAgent({ ...newAgent, description: e.target.value })}
                   placeholder="Describe your agent's role ex: Customer Support"
                   className="mt-1.5 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[80px] resize-none"
+                  aria-required="true"
                 />
               </div>
             </div>
@@ -707,6 +819,7 @@ const Avatars = () => {
                 variant="outline"
                 className="flex-1 border-gray-300 hover:bg-gray-50"
                 onClick={() => setIsCreateModalOpen(false)}
+                aria-label="Cancel agent creation"
               >
                 Cancel
               </Button>
@@ -714,9 +827,10 @@ const Avatars = () => {
                 type="button"
                 className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/30"
                 onClick={handleCreateAgent}
-                disabled={!limits.canCreateAgent || !newAgent.name || !newAgent.personality || !newAgent.description}
+                disabled={isCreating || !limits.canCreateAgent || !newAgent.name || !newAgent.personality || !newAgent.description}
+                aria-label="Create AI agent"
               >
-                <Save size={16} className="mr-2" />
+                {isCreating ? <RefreshCw className="animate-spin mr-2" size={16} /> : <Save size={16} className="mr-2" />}
                 Create Agent
               </Button>
             </div>
@@ -754,6 +868,7 @@ const Avatars = () => {
             <Button
               onClick={downloadQRCode}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/30"
+              aria-label="Download QR code"
             >
               <Download size={16} className="mr-2" />
               Download QR Code
@@ -780,8 +895,8 @@ const AvatarsSkeleton = () => {
         </div>
 
         {/* Stats Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {[...Array(4)].map((_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {[...Array(3)].map((_, i) => (
             <Card key={i} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
@@ -818,7 +933,7 @@ const AvatarsSkeleton = () => {
                 <Skeleton className="h-4 w-full mb-2" />
                 <Skeleton className="h-4 w-3/4 mb-6" />
                 <div className="space-y-2 mb-4">
-                  {[...Array(4)].map((_, j) => (
+                  {[...Array(3)].map((_, j) => (
                     <Skeleton key={j} className="h-10 w-full rounded-xl" />
                   ))}
                 </div>

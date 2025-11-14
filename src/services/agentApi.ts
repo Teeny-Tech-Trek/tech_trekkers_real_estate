@@ -65,14 +65,12 @@ export const fetchAgents = async (): Promise<Agent[]> => {
   return response.data;
 };
 
-export const createAgent = async (data: {
-  name: string;
-  personality: string;
-  voice: string;
-  avatar: string;
-  description: string;
-}): Promise<Agent> => {
-  const response = await agentApi.post<Agent>('/createagent', data);
+export const createAgent = async (data: FormData): Promise<Agent> => {
+  const response = await agentApi.post<Agent>('/createagent', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };
 

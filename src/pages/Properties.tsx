@@ -1,145 +1,145 @@
-  import React, { useState, useEffect } from "react";
-  import { motion, AnimatePresence } from "framer-motion";
-  import {
-    Plus, Search, Filter, MapPin, Bed, Bath, Square,
-    TrendingUp, AlertTriangle, Users, School, ShoppingCart,
-    Train, Sun, Droplets, Wifi, Car, Eye, Edit,
-    Star, Heart, Share2, Download, BarChart3, Target,
-    Clock, DollarSign, Home, Building, Crown, Trash2,
-    Save, X, Upload, Calendar, Phone, Mail, User,
-    ArrowLeft, ArrowRight, ZoomIn, ZoomOut
-  } from "lucide-react";
-  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-  import { Button } from "@/components/ui/button";
-  import { Input } from "@/components/ui/input";
-  import { Badge } from "@/components/ui/badge";
-  import { Progress } from "@/components/ui/progress";
-  import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-  import { Label } from "@/components/ui/label";
-  import { Textarea } from "@/components/ui/textarea";
-  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-  import { Slider } from "@/components/ui/slider";
-  import axios from "axios";
-  import propertiesApi, {
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Plus, Search, Filter, MapPin, Bed, Bath, Square,
+  TrendingUp, AlertTriangle, Users, School, ShoppingCart,
+  Train, Sun, Droplets, Wifi, Car, Eye, Edit,
+  Star, Heart, Share2, Download, BarChart3, Target,
+  Clock, DollarSign, Home, Building, Crown, Trash2,
+  Save, X, Upload, Calendar, Phone, Mail, User,
+  ArrowLeft, ArrowRight, ZoomIn, ZoomOut
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import axios from "axios";
+import propertiesApi, {
   fetchProperties as fetchPropertiesApi,
   createProperty,
   updateProperty,
   toggleFavoriteProperty,
   deleteProperty
 } from "@/services/propertiesApi";
-  import { Property } from "@/types/property";
+import { Property } from "@/types/property";
 
-  // Default property structure for initialization
-  const defaultProperty = {
-    title: "",
-    price: "",
-    location: "",
-    address: "",
-    bedrooms: "",
-    bathrooms: "",
-    area: "",
-    areaUnit: "sq ft",
-    status: "available",
-    type: "single_family",
-    yearBuilt: new Date().getFullYear(),
-    images: [],
-    description: "",
-    leads: 0,
-    views: 0,
-    favorite: false,
-    createdAt: new Date().toISOString().split("T")[0],
-    analytics: {
-      riskScore: 0,
-      investmentPotential: 0,
-      rentalYield: 0,
-      appreciation: 0,
-      demandScore: 0,
-      marketValue: 0,
-      pricePerSqFt: 0
-    },
-    hazards: [],
-    demographics: {
-      averageAge: 0,
-      averageIncome: "",
-      familyRatio: 0,
-      education: "",
-      populationDensity: "medium"
-    },
-    amenities: {
-      transit: [],
-      education: [],
-      shopping: [],
-      parks: [],
-      healthcare: [],
-      other: []
-    },
-    marketInsights: {
-      daysOnMarket: 0,
-      pricePerSqFt: 0,
-      comparableSales: 0,
-      marketTrend: "stable",
-      avgDaysOnMarket: 0
-    },
-    financials: {
-      monthlyRent: 0,
-      propertyTax: 0,
-      insurance: 0,
-      maintenance: 0,
-      hoa: 0
-    },
-    ownerInfo: {
-      name: "",
-      email: "",
-      phone: "",
-      since: new Date().toISOString().split("T")[0]
+// Default property structure for initialization
+const defaultProperty = {
+  title: "",
+  price: "",
+  location: "",
+  address: "",
+  bedrooms: "",
+  bathrooms: "",
+  area: "",
+  areaUnit: "sq ft",
+  status: "available",
+  type: "single_family",
+  yearBuilt: new Date().getFullYear(),
+  images: [],
+  description: "",
+  leads: 0,
+  views: 0,
+  favorite: false,
+  createdAt: new Date().toISOString().split("T")[0],
+  analytics: {
+    riskScore: 0,
+    investmentPotential: 0,
+    rentalYield: 0,
+    appreciation: 0,
+    demandScore: 0,
+    marketValue: 0,
+    pricePerSqFt: 0
+  },
+  hazards: [],
+  demographics: {
+    averageAge: 0,
+    averageIncome: "",
+    familyRatio: 0,
+    education: "",
+    populationDensity: "medium"
+  },
+  amenities: {
+    transit: [],
+    education: [],
+    shopping: [],
+    parks: [],
+    healthcare: [],
+    other: []
+  },
+  marketInsights: {
+    daysOnMarket: 0,
+    pricePerSqFt: 0,
+    comparableSales: 0,
+    marketTrend: "stable",
+    avgDaysOnMarket: 0
+  },
+  financials: {
+    monthlyRent: 0,
+    propertyTax: 0,
+    insurance: 0,
+    maintenance: 0,
+    hoa: 0
+  },
+  ownerInfo: {
+    name: "",
+    email: "",
+    phone: "",
+    since: new Date().toISOString().split("T")[0]
+  }
+};
+
+const Properties = () => {
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("add");
+  const [isViewPropertyOpen, setIsViewPropertyOpen] = useState(false);
+  const [view, setView] = useState("grid");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  const fetchProperties = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await fetchPropertiesApi();
+      console.log
+      setProperties(data);
+    } catch (err: any) {
+      console.error("Fetch Properties Error:", err);
+      setError(err.message || "Failed to load properties");
+      setProperties([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const Properties = () => {
-const [properties, setProperties] = useState<Property[]>([]);
-const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalMode, setModalMode] = useState("add");
-    const [isViewPropertyOpen, setIsViewPropertyOpen] = useState(false);
-    const [view, setView] = useState("grid");
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-
-    
-    useEffect(() => {
-      fetchProperties();
-    }, []);
-
-  const fetchProperties = async () => {
-  try {
-    setIsLoading(true);
-    setError(null);
-    const data = await fetchPropertiesApi();
-    console.log
-    setProperties(data);
-  } catch (err: any) {
-    console.error("Fetch Properties Error:", err);
-    setError(err.message || "Failed to load properties");
-    setProperties([]);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-const toggleFavorite = async (id: string) => {
-  try {
-    const updatedProperty = await toggleFavoriteProperty(id);
-    setProperties((props) =>
-      props.map((p) => (p._id === id ? updatedProperty : p))
-    );
-  } catch (err: any) {
-    console.error("Toggle Favorite Error:", err);
-    setError(err.message);
-  }
-};
+  const toggleFavorite = async (id: string) => {
+    try {
+      const updatedProperty = await toggleFavoriteProperty(id);
+      setProperties((props) =>
+        props.map((p) => (p._id === id ? updatedProperty : p))
+      );
+    } catch (err: any) {
+      console.error("Toggle Favorite Error:", err);
+      setError(err.message);
+    }
+  };
 
 
 
@@ -161,316 +161,315 @@ const toggleFavorite = async (id: string) => {
     setIsModalOpen(true);
   };
 
-const handleSaveProperty = async (propertyData: Property, files: File[], deletedImages: string[]) => {
-  const formData = new FormData();
+  const handleSaveProperty = async (propertyData: Property, files: File[], deletedImages: string[]) => {
+    const formData = new FormData();
 
-  // ✅ Stringify the main object, make sure hazards is an array of objects
-  const dataToSend = { ...propertyData, hazards: propertyData.hazards || [] };
-  formData.append("data", JSON.stringify(dataToSend));
+    // ✅ Stringify the main object, make sure hazards is an array of objects
+    const dataToSend = { ...propertyData, hazards: propertyData.hazards || [] };
+    formData.append("data", JSON.stringify(dataToSend));
 
-  // Deleted images
-  formData.append("deletedImages", JSON.stringify(deletedImages));
+    // Deleted images
+    formData.append("deletedImages", JSON.stringify(deletedImages));
 
-  // Append files
-  files.forEach((file) => formData.append("images", file));
+    // Append files
+    files.forEach((file) => formData.append("images", file));
 
-  try {
-    if (modalMode === "add") {
-      await createProperty(formData);
-    } else if (selectedProperty) {
-      await updateProperty(selectedProperty._id, formData);
+    try {
+      if (modalMode === "add") {
+        await createProperty(formData);
+      } else if (selectedProperty) {
+        await updateProperty(selectedProperty._id, formData);
+      }
+      await fetchProperties();
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Save Property Error:", err);
+      setError(err.response?.data?.error || err.message);
     }
-    await fetchProperties();
-    setIsModalOpen(false);
-  } catch (err: any) {
-    console.error("Save Property Error:", err);
-    setError(err.response?.data?.error || err.message);
-  }
-};
+  };
 
 
 
   const handleDeleteProperty = async (id: string) => {
-  if (!window.confirm("Are you sure you want to delete this property?")) return;
+    if (!window.confirm("Are you sure you want to delete this property?")) return;
 
-  try {
-    await deleteProperty(id);
-    await fetchProperties();
-  } catch (err: any) {
-    console.error("Delete Property Error:", err);
-    setError(err.message);
-  }
-};
-
-
-
-    const nextImage = () => {
-      setCurrentImageIndex((prev) =>
-        prev === selectedProperty.images.length - 1 ? 0 : prev + 1
-      );
-    };
-
-    const prevImage = () => {
-      setCurrentImageIndex((prev) =>
-        prev === 0 ? selectedProperty.images.length - 1 : prev - 1
-      );
-    };
-
-    const getRiskColor = (score) => {
-      if (score <= 20) return "text-green-600 bg-green-100 border-green-200";
-      if (score <= 40) return "text-yellow-600 bg-yellow-100 border-yellow-200";
-      return "text-red-600 bg-red-100 border-red-200";
-    };
-
-    const getHazardColor = (level) => {
-      switch (level) {
-        case "very_low":
-          return "bg-green-500 text-white";
-        case "low":
-          return "bg-blue-500 text-white";
-        case "medium":
-          return "bg-yellow-500 text-white";
-        case "high":
-          return "bg-orange-500 text-white";
-        case "very_high":
-          return "bg-red-500 text-white";
-        default:
-          return "bg-gray-500 text-white";
-      }
-    };
-
-    const containerVariants = {
-      hidden: { opacity: 0 },
-      visible: {
-        opacity: 1,
-        transition: {
-          staggerChildren: 0.1,
-        },
-      },
-    };
-
-    const itemVariants = {
-      hidden: { y: 20, opacity: 0 },
-      visible: {
-        y: 0,
-        opacity: 1,
-        transition: {
-          type: "spring",
-          stiffness: 100,
-        },
-      },
-    };
-
-    if (isLoading) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
-          <div>Loading...</div>
-        </div>
-      );
+    try {
+      await deleteProperty(id);
+      await fetchProperties();
+    } catch (err: any) {
+      console.error("Delete Property Error:", err);
+      setError(err.message);
     }
+  };
 
-    if (error) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
-          <div className="text-red-600">Error: {error}</div>
-        </div>
-      );
+
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) =>
+      prev === selectedProperty.images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) =>
+      prev === 0 ? selectedProperty.images.length - 1 : prev - 1
+    );
+  };
+
+  const getRiskColor = (score) => {
+    if (score <= 20) return "text-green-600 bg-green-100 border-green-200";
+    if (score <= 40) return "text-yellow-600 bg-yellow-100 border-yellow-200";
+    return "text-red-600 bg-red-100 border-red-200";
+  };
+
+  const getHazardColor = (level) => {
+    switch (level) {
+      case "very_low":
+        return "bg-green-500 text-white";
+      case "low":
+        return "bg-blue-500 text-white";
+      case "medium":
+        return "bg-yellow-500 text-white";
+      case "high":
+        return "bg-orange-500 text-white";
+      case "very_high":
+        return "bg-red-500 text-white";
+      default:
+        return "bg-gray-500 text-white";
     }
+  };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+      },
+    },
+  };
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
-        {/* Header */}
-        <motion.header
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10"
-        >
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-4 gap-4">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-600 bg-clip-text text-transparent">
-                Property Portfolio
-              </h1>
-              <p className="text-slate-600 mt-1">Manage listings with advanced analytics & risk assessment</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 border-slate-300"
-                onClick={() => setView(view === "grid" ? "analytics" : "grid")}
-              >
-                <BarChart3 size={16} />
-                {view === "grid" ? "Analytics View" : "Grid View"}
-              </Button>
-              <Button
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/25"
-                onClick={openAddModal}
-              >
-                <Plus size={16} />
-                Add Property
-              </Button>
-            </div>
-          </div>
-        </motion.header>
-
-        <div className="p-6 max-w-7xl mx-auto">
-          {/* Stats Overview */}
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
-          >
-            <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Total Properties</p>
-                    <p className="text-2xl font-bold text-slate-900">{properties.length}</p>
-                  </div>
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Home className="text-blue-600" size={20} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Active Leads</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {properties.reduce((sum, prop) => sum + prop.leads, 0)}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="text-green-600" size={20} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Avg Risk Score</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {properties.length > 0
-                        ? Math.round(
-                            properties.reduce((sum, prop) => sum + prop.analytics.riskScore, 0) /
-                              properties.length
-                          )
-                        : 0}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                    <AlertTriangle className="text-red-600" size={20} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Investment Potential</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {properties.length > 0
-                        ? Math.round(
-                            properties.reduce(
-                              (sum, prop) => sum + prop.analytics.investmentPotential,
-                              0
-                            ) / properties.length
-                          )
-                        : 0}
-                      %
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Target className="text-purple-600" size={20} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Search and Filters */}
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-col sm:flex-row gap-4 mb-6"
-          >
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
-              <Input
-                placeholder="Search properties by location, features, or risk factors..."
-                className="pl-10 border-slate-300 bg-white/80"
-              />
-            </div>
-            <Button variant="outline" className="flex items-center gap-2 border-slate-300 bg-white/80">
-              <Filter size={16} />
-              Advanced Filters
-            </Button>
-          </motion.div>
-
-          {/* Properties Grid */}
-          <AnimatePresence mode="wait">
-            {view === "grid" ? (
-              <motion.div
-                key="grid"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
-                {properties.map((property) => (
-                  <motion.div
-                    key={property.id}
-                 
-                    layoutId={`property-${property.id}`}
-                  >
-                    <Card className="overflow-hidden bg-white/80 backdrop-blur-sm border-slate-200/60 hover:shadow-xl transition-all duration-300 group">
-                      <div className="relative">
-                <img
-  src={
-    property.images && property.images[0]
-      ? `https://api.estate.techtrekkers.ai${encodeURI(property.images[0])}`
-      : "/placeholder-image.jpg"
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
+        <div>Loading...</div>
+      </div>
+    );
   }
-  alt={property.title}
-  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-  onError={(e) => {
-    console.error("Image load error:", e.currentTarget.src);
-    e.currentTarget.src = "/placeholder-image.jpg";
-  }}
-/>
 
-                        <div className="absolute top-3 left-3 flex gap-2">
-                          <Badge
-                            className={`${
-                              property.status === "available" ? "bg-green-500" : "bg-yellow-500"
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
+        <div className="text-red-600">Error: {error}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+      {/* Header */}
+      <motion.header
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10"
+      >
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-4 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-600 bg-clip-text text-transparent">
+              Property Portfolio
+            </h1>
+            <p className="text-slate-600 mt-1">Manage listings with advanced analytics & risk assessment</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 border-slate-300"
+              onClick={() => setView(view === "grid" ? "analytics" : "grid")}
+            >
+              <BarChart3 size={16} />
+              {view === "grid" ? "Analytics View" : "Grid View"}
+            </Button>
+            <Button
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/25"
+              onClick={openAddModal}
+            >
+              <Plus size={16} />
+              Add Property
+            </Button>
+          </div>
+        </div>
+      </motion.header>
+
+      <div className="p-6 max-w-7xl mx-auto">
+        {/* Stats Overview */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+        >
+          <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Total Properties</p>
+                  <p className="text-2xl font-bold text-slate-900">{properties.length}</p>
+                </div>
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Home className="text-blue-600" size={20} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Active Leads</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {properties.reduce((sum, prop) => sum + prop.leads, 0)}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="text-green-600" size={20} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Avg Risk Score</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {properties.length > 0
+                      ? Math.round(
+                        properties.reduce((sum, prop) => sum + prop.analytics.riskScore, 0) /
+                        properties.length
+                      )
+                      : 0}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                  <AlertTriangle className="text-red-600" size={20} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Investment Potential</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {properties.length > 0
+                      ? Math.round(
+                        properties.reduce(
+                          (sum, prop) => sum + prop.analytics.investmentPotential,
+                          0
+                        ) / properties.length
+                      )
+                      : 0}
+                    %
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Target className="text-purple-600" size={20} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Search and Filters */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="flex flex-col sm:flex-row gap-4 mb-6"
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+            <Input
+              placeholder="Search properties by location, features, or risk factors..."
+              className="pl-10 border-slate-300 bg-white/80"
+            />
+          </div>
+          <Button variant="outline" className="flex items-center gap-2 border-slate-300 bg-white/80">
+            <Filter size={16} />
+            Advanced Filters
+          </Button>
+        </motion.div>
+
+        {/* Properties Grid */}
+        <AnimatePresence mode="wait">
+          {view === "grid" ? (
+            <motion.div
+              key="grid"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {properties.map((property) => (
+                <motion.div
+                  key={property.id}
+
+                  layoutId={`property-${property.id}`}
+                >
+                  <Card className="overflow-hidden bg-white/80 backdrop-blur-sm border-slate-200/60 hover:shadow-xl transition-all duration-300 group">
+                    <div className="relative">
+                      <img
+                        src={
+                          property.images && property.images[0]
+                            ? `https://api.estate.techtrekkers.ai${encodeURI(property.images[0])}`
+                            : "/placeholder-image.jpg"
+                        }
+                        alt={property.title}
+                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          console.error("Image load error:", e.currentTarget.src);
+                          e.currentTarget.src = "/placeholder-image.jpg";
+                        }}
+                      />
+
+                      <div className="absolute top-3 left-3 flex gap-2">
+                        <Badge
+                          className={`${property.status === "available" ? "bg-green-500" : "bg-yellow-500"
                             } text-white`}
-                          >
-                            {property.status}
-                          </Badge>
-                          <Badge className={getRiskColor(property.analytics.riskScore)}>
-                            Risk: {property.analytics.riskScore}%
-                          </Badge>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute top-3 right-3 bg-white/90 hover:bg-white"
-                          onClick={() => toggleFavorite(property._id)}
                         >
-                          <Heart
-                            size={16}
-                            className={property.favorite ? "fill-red-500 text-red-500" : "text-slate-600"}
-                          />
-                        </Button>
+                          {property.status}
+                        </Badge>
+                        <Badge className={getRiskColor(property.analytics.riskScore)}>
+                          Risk: {property.analytics.riskScore}%
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-3 right-3 bg-white/90 hover:bg-white"
+                        onClick={() => toggleFavorite(property._id)}
+                      >
+                        <Heart
+                          size={16}
+                          className={property.favorite ? "fill-red-500 text-red-500" : "text-slate-600"}
+                        />
+                      </Button>
                     </div>
 
                     <CardHeader className="pb-3">
@@ -569,19 +568,19 @@ const handleSaveProperty = async (propertyData: Property, files: File[], deleted
                     <CardContent className="p-6">
                       <div className="flex flex-col lg:flex-row gap-6">
                         <div className="lg:w-1/3">
-         <img
-  src={
-    property.images && property.images[0]
-      ? `https://api.estate.techtrekkers.ai${encodeURI(property.images[0])}`
-      : "/placeholder-image.jpg"
-  }
-  alt={property.title}
-  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-  onError={(e) => {
-    console.error("Image load error:", e.currentTarget.src);
-    e.currentTarget.src = "/placeholder-image.jpg";
-  }}
-/>
+                          <img
+                            src={
+                              property.images && property.images[0]
+                                ? `https://api.estate.techtrekkers.ai${encodeURI(property.images[0])}`
+                                : "/placeholder-image.jpg"
+                            }
+                            alt={property.title}
+                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              console.error("Image load error:", e.currentTarget.src);
+                              e.currentTarget.src = "/placeholder-image.jpg";
+                            }}
+                          />
 
                         </div>
 
@@ -723,19 +722,19 @@ const handleSaveProperty = async (propertyData: Property, files: File[], deleted
 
               <div className="space-y-6">
                 <div className="relative">
-            <img
-  src={
-    selectedProperty.images && selectedProperty.images[currentImageIndex]
-      ? `https://api.estate.techtrekkers.ai${encodeURI(selectedProperty.images[currentImageIndex])}`
-      : "/placeholder-image.jpg"
-  }
-  alt={selectedProperty.title}
-  className="w-full h-64 md:h-96 object-cover rounded-lg"
-  onError={(e) => {
-    console.error("Image load error:", e.currentTarget.src);
-    e.currentTarget.src = "/placeholder-image.jpg";
-  }}
-/>
+                  <img
+                    src={
+                      selectedProperty.images && selectedProperty.images[currentImageIndex]
+                        ? `https://api.estate.techtrekkers.ai${encodeURI(selectedProperty.images[currentImageIndex])}`
+                        : "/placeholder-image.jpg"
+                    }
+                    alt={selectedProperty.title}
+                    className="w-full h-64 md:h-96 object-cover rounded-lg"
+                    onError={(e) => {
+                      console.error("Image load error:", e.currentTarget.src);
+                      e.currentTarget.src = "/placeholder-image.jpg";
+                    }}
+                  />
 
                   {selectedProperty.images.length > 1 && (
                     <>
@@ -759,9 +758,8 @@ const handleSaveProperty = async (propertyData: Property, files: File[], deleted
                         {selectedProperty.images.map((_, index) => (
                           <button
                             key={index}
-                            className={`w-2 h-2 rounded-full ${
-                              index === currentImageIndex ? "bg-white" : "bg-white/50"
-                            }`}
+                            className={`w-2 h-2 rounded-full ${index === currentImageIndex ? "bg-white" : "bg-white/50"
+                              }`}
                             onClick={() => setCurrentImageIndex(index)}
                           />
                         ))}
@@ -1093,7 +1091,7 @@ const PropertyFormModal = ({ isOpen, onClose, mode, initialData, onSave }) => {
                 <Label>Price *</Label>
                 <Input
                   name="price"
-                   placeholder="₹55,00,000"
+                  placeholder="₹55,00,000"
                   value={propertyData.price}
                   onChange={handleChange}
                 />

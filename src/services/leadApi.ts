@@ -1,15 +1,14 @@
+// services/leadApi.ts
 import axios, { AxiosError } from 'axios';
-import { ApiLead, ApiVisit, Lead, Visit, mapApiLeadToLead, mapApiVisitToVisit } from '../types/lead';
+import { ApiLead, ApiVisit, ApiChat, Lead, Visit, Chat, mapApiLeadToLead, mapApiVisitToVisit, mapApiChatToChat } from '../types/lead';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://api.estate.techtrekkers.ai/api';
 
-// Axios instance for lead and visit-related requests
 const leadApi = axios.create({
   baseURL: API_URL,
   withCredentials: true,
 });
 
-// Request interceptor to include access token
 leadApi.interceptors.request.use((config) => {
   const auth = JSON.parse(localStorage.getItem('auth') || '{}');
   if (auth?.tokens?.accessToken) {
@@ -18,7 +17,6 @@ leadApi.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor for 401 token refresh
 leadApi.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -74,13 +72,21 @@ export const createLead = async (data: Partial<Lead>): Promise<Lead> => {
         name: data.name,
         email: data.email,
         phone: data.phone,
+        preferredContact: data.preferredContact,
       },
-      bedrooms: data.property?.match(/\d+/) ? parseInt(data.property.match(/\d+/)[0]) : undefined,
+      budget: data.budget,
+      timeline: data.timeline,
+      propertyType: data.propertyType,
+      locationPreference: data.locationPreference,
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      purpose: data.purpose,
+      notes: data.notes,
     },
     leadScore: data.score,
     status: data.status,
     agent: data.assignedAgent,
-    sessionId: data.source === "Chat Session" ? "generated-session-id" : undefined,
+    sessionId: data.source === "Chat Session" ? data.sessionId || "generated-session-id" : undefined,
   };
   const response = await leadApi.post<ApiLead>('/leads', apiData);
   return mapApiLeadToLead(response.data);
@@ -93,8 +99,16 @@ export const updateLead = async (id: string, data: Partial<Lead>): Promise<Lead>
         name: data.name,
         email: data.email,
         phone: data.phone,
+        preferredContact: data.preferredContact,
       },
-      bedrooms: data.property?.match(/\d+/) ? parseInt(data.property.match(/\d+/)[0]) : undefined,
+      budget: data.budget,
+      timeline: data.timeline,
+      propertyType: data.propertyType,
+      locationPreference: data.locationPreference,
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      purpose: data.purpose,
+      notes: data.notes,
     },
     leadScore: data.score,
     status: data.status,
@@ -151,6 +165,21 @@ export const updateVisit = async (id: string, data: Partial<Visit>): Promise<Vis
 
 export const deleteVisit = async (id: string): Promise<void> => {
   await leadApi.delete(`/visits/${id}`);
+};
+
+// Chat API functions
+export const fetchChatByAgentAndSession = async (agentId: string, sessionId: string): Promise<Chat> => {
+  const response = await leadApi.get<ApiChat>(`/chats/${agentId}/${sessionId}`);
+  return mapApiChatToChat(response.data);
+};
+
+export const sendChatMessage = async (agentId: string, sessionId: string, message: {
+  sender: 'user' | 'agent' | 'system';
+  text: string;
+  propertyCards?: any[];
+}): Promise<Chat> => {
+  const response = await leadApi.post<ApiChat>(`/chats/${agentId}/${sessionId}/messages`, message);
+  return mapApiChatToChat(response.data);
 };
 
 export default leadApi;
