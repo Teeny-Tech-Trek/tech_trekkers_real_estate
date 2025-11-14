@@ -2,13 +2,17 @@ import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, Zap, TrendingUp, Bot } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import robotImg from "../imges/ChatGPT_Image_Nov_6__2025__02_34_35_PM-removebg-preview.png"
+import React from "react";
+import robotImg from "../imges/ChatGPT Image Nov 14, 2025, 06_44_35 PM.png"
+import estateVideo from "../imges/ai agent final animation video.mp4"
 
 const Hero = () => {
   const containerRef = useRef(null);
   const robotRef = useRef(null);
   const robotInnerRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [showPopup, setShowPopup] = React.useState(false);
+
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -235,14 +239,63 @@ const Hero = () => {
               </motion.a>
 
               <motion.a
-                href="#demo"
-                className="group inline-flex items-center justify-center gap-3 px-8 py-5 bg-white/10 backdrop-blur-xl border-2 border-white/30 rounded-full text-white font-bold text-lg hover:bg-white/20 transition-all shadow-xl"
+                onClick={() => setShowPopup(true)}
+                className="group inline-flex items-center justify-center gap-3 px-8 py-5 bg-white/10 backdrop-blur-xl border-2 border-white/30 rounded-full text-white font-bold text-lg hover:bg-white/20 transition-all shadow-xl cursor-pointer"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
               >
                 Watch Demo
               </motion.a>
+
             </motion.div>
+
+            {showPopup && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed  inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[9999]"
+                >
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setShowPopup(false)}
+                    className="absolute top-16 right-6 text-white text-4xl font-bold hover:text-red-400 transition"
+                  >
+                    ✕
+                  </button>
+
+                  {/* Video Container */}
+                  <div className="relative w-full max-w-4xl px-4">
+                    <video
+                      id="popupVideo"
+                      src={estateVideo} 
+                      className="w-full rounded-2xl shadow-2xl border border-white/10"
+                      autoPlay
+                    ></video>
+
+                    {/* Controls */}
+                    <div className="flex justify-center gap-6 mt-5 
+                      bg-white/10 backdrop-blur-xl border border-white/20
+                      rounded-full px-6 py-3 shadow-lg"
+                    >
+                      <button
+                        onClick={() => document.getElementById('popupVideo').play()}
+                        className="px-6 py-2 bg-cyan-500/30 hover:bg-cyan-500/40 text-cyan-200 rounded-full transition"
+                      >
+                        ▶ Play
+                      </button>
+
+                      <button
+                        onClick={() => document.getElementById('popupVideo').pause()}
+                        className="px-6 py-2 bg-red-500/30 hover:bg-red-500/40 text-red-200 rounded-full transition"
+                      >
+                        ⏸ Pause
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
 
             {/* Stats */}
             {/* <motion.div
@@ -327,7 +380,7 @@ const Hero = () => {
                 }}
               >
                 {/* Robot Image with glassmorphism frame */}
-                <div className="relative rounded-3xl overflow-hidden   p-8">
+                <div className="relative rounded-3xl overflow-hidden   ">
                   <img
                     src={robotImg}
                     alt="AI Agent Robot"
