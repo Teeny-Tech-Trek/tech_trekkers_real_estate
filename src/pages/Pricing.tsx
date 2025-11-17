@@ -294,15 +294,7 @@ const Pricing = () => {
 
       {/* Header */}
       <div ref={sectionRef} className="container mx-auto px-6 lg:px-12 py-16 md:py-24 text-center relative z-10" style={{ perspective: "1500px" }}>
-        <motion.div
-          ref={badgeRef}
-          className="inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-xl shadow-2xl mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileHover={{ scale: 1.05 }}
-        >
-          <div className="w-2.5 h-2.5 rounded-full bg-white shadow-lg shadow-blue-400/50 animate-pulse"></div>
-          <span className="text-sm font-bold text-white tracking-wide">Pricing Plans • 07</span>
-        </motion.div>
+      
         
         <h1 
           ref={titleRef}

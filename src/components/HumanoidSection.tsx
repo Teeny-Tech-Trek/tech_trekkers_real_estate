@@ -197,15 +197,7 @@ const HumanoidSection = () => {
       <div className="container px-6 lg:px-12 mx-auto relative z-10">
         {/* Header Section with 3D Transform */}
         <div className="max-w-4xl mb-20" style={{ perspective: "1500px" }}>
-          <motion.div
-            ref={badgeRef}
-            className="inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-xl shadow-2xl mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <div className="w-2.5 h-2.5 rounded-full bg-white shadow-lg shadow-blue-400/50 animate-pulse"></div>
-            <span className="text-sm font-bold text-white tracking-wide">Virtual Agents • 02</span>
-          </motion.div>
+          
 
           <h2
             ref={titleRef}
@@ -316,31 +308,7 @@ const HumanoidSection = () => {
                     </p>
                   </div>
 
-                  {/* 3D Arrow indicator */}
-                  <motion.div
-                    className="flex-shrink-0 hidden lg:block"
-                    style={{ transform: "translateZ(30px)" }}
-                    whileHover={{ x: 10, scale: 1.1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div
-                      className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl"
-                      style={{
-                        background: "rgba(255, 255, 255, 0.1)",
-                        border: "2px solid rgba(255, 255, 255, 0.2)",
-                      }}
-                    >
-                      <svg
-                        className="w-7 h-7 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </div>
-                  </motion.div>
+                 
                 </div>
 
                 {/* Bottom accent line with glow */}

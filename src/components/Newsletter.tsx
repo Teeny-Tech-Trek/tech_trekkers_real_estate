@@ -216,15 +216,7 @@ const Newsletter = () => {
         <div className="max-w-4xl mx-auto">
           {/* Header Section with 3D Transform */}
           <div className="text-center mb-16" style={{ perspective: "1500px" }}>
-            <motion.div
-              ref={badgeRef}
-              className="inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-xl shadow-2xl mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              whileHover={{ scale: 1.05 }}
-            >
-              <div className="w-2.5 h-2.5 rounded-full bg-white shadow-lg shadow-blue-400/50 animate-pulse"></div>
-              <span className="text-sm font-bold text-white tracking-wide">Newsletter • 08</span>
-            </motion.div>
+           
 
             <h2
               ref={titleRef}
