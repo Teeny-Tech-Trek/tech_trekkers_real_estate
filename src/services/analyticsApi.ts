@@ -3,6 +3,8 @@
     import { authAtom } from '../atoms/authAtom';
 
     const API_URL = import.meta.env.VITE_API_URL || 'https://api.estate.techtrekkers.ai/api';
+// const API_URL =  'http://localhost:5000/api';
+
 
     // Axios instance for analytics-related requests
     const analyticsApi = axios.create({

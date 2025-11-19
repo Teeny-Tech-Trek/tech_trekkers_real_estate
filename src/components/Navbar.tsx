@@ -148,7 +148,7 @@ const Navbar = () => {
                 Login
               </motion.button>
             </a>
-            <a href="/dashboard">
+            <a href="/signup">
               <motion.button 
                 className="px-6 py-2.5 text-base font-black rounded-xl shadow-2xl text-blue-900"
                 style={{

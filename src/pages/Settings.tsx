@@ -814,9 +814,9 @@ const Settings = () => {
                   ))}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 ">
                   <Button variant="outline">View Billing History</Button>
-                  <Button variant="outline">Download Tax Documents</Button>
+                  {/* <Button variant="outline">Download Tax Documents</Button> */}
                 </div>
               </>
             )}
