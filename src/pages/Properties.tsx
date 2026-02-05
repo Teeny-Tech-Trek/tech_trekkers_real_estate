@@ -437,7 +437,7 @@ const Properties = () => {
                       <img
                         src={
                           property.images && property.images[0]
-                            ? `https://api.estate.techtrekkers.ai${encodeURI(property.images[0])}`
+                            ? property.images[0]
                             : "/placeholder-image.jpg"
                         }
                         alt={property.title}
@@ -571,7 +571,7 @@ const Properties = () => {
                           <img
                             src={
                               property.images && property.images[0]
-                                ? `https://api.estate.techtrekkers.ai${encodeURI(property.images[0])}`
+                                ? property.images[0]
                                 : "/placeholder-image.jpg"
                             }
                             alt={property.title}
@@ -725,7 +725,7 @@ const Properties = () => {
                   <img
                     src={
                       selectedProperty.images && selectedProperty.images[currentImageIndex]
-                        ? `https://api.estate.techtrekkers.ai${encodeURI(selectedProperty.images[currentImageIndex])}`
+                        ? selectedProperty.images[currentImageIndex]
                         : "/placeholder-image.jpg"
                     }
                     alt={selectedProperty.title}
