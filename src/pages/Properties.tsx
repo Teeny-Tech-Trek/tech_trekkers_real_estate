@@ -434,6 +434,7 @@ const Properties = () => {
                 >
                   <Card className="overflow-hidden bg-white/80 backdrop-blur-sm border-slate-200/60 hover:shadow-xl transition-all duration-300 group">
                     <div className="relative">
+                    <div className="relative h-48">
                       <img
                         src={
                           property.images && property.images[0]
@@ -441,12 +442,13 @@ const Properties = () => {
                             : "/placeholder.svg"
                         }
                         alt={property.title}
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover block loading="lazy" decoding="async" group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           console.error("Image load error:", e.currentTarget.src);
                           e.currentTarget.src = "/placeholder.svg";
                         }}
                       />
+                    </div>
 
                       <div className="absolute top-3 left-3 flex gap-2">
                         <Badge
@@ -568,6 +570,7 @@ const Properties = () => {
                     <CardContent className="p-6">
                       <div className="flex flex-col lg:flex-row gap-6">
                         <div className="lg:w-1/3">
+                          <div className="relative h-48">
                                                 <img
                                                   src={
                                                     property.images && property.images[0]
@@ -575,12 +578,13 @@ const Properties = () => {
                                                       : "/placeholder.svg"
                                                   }
                                                   alt={property.title}
-                                                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                                                  className="w-full h-full object-cover block loading="lazy" decoding="async" group-hover:scale-105 transition-transform duration-300"
                                                   onError={(e) => {
                                                     console.error("Image load error:", e.currentTarget.src);
                                                     e.currentTarget.src = "/placeholder.svg";
                                                   }}
                                                 />
+                          </div>
                         </div>
 
                         <div className="lg:w-2/3 space-y-4">
@@ -720,7 +724,7 @@ const Properties = () => {
               </DialogHeader>
 
               <div className="space-y-6">
-                <div className="relative">
+                <div className="relative w-full h-64 md:h-96">
                   <img
                     src={
                       selectedProperty.images && selectedProperty.images[currentImageIndex]
@@ -728,7 +732,7 @@ const Properties = () => {
                         : "/placeholder.svg"
                     }
                     alt={selectedProperty.title}
-                    className="w-full h-64 md:h-96 object-cover rounded-lg"
+                    className="w-full h-full object-cover rounded-lg loading="lazy" decoding="async""
                     onError={(e) => {
                                                      console.error("Image load error:", e.currentTarget.src);
                                                      e.currentTarget.src = "/placeholder.svg";                    }}
