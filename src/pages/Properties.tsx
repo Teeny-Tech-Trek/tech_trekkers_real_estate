@@ -438,13 +438,13 @@ const Properties = () => {
                         src={
                           property.images && property.images[0]
                             ? property.images[0]
-                            : "/placeholder-image.jpg"
+                            : "/placeholder.svg"
                         }
                         alt={property.title}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           console.error("Image load error:", e.currentTarget.src);
-                          e.currentTarget.src = "/placeholder-image.jpg";
+                          e.currentTarget.src = "/placeholder.svg";
                         }}
                       />
 
@@ -568,20 +568,19 @@ const Properties = () => {
                     <CardContent className="p-6">
                       <div className="flex flex-col lg:flex-row gap-6">
                         <div className="lg:w-1/3">
-                          <img
-                            src={
-                              property.images && property.images[0]
-                                ? property.images[0]
-                                : "/placeholder-image.jpg"
-                            }
-                            alt={property.title}
-                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                            onError={(e) => {
-                              console.error("Image load error:", e.currentTarget.src);
-                              e.currentTarget.src = "/placeholder-image.jpg";
-                            }}
-                          />
-
+                                                <img
+                                                  src={
+                                                    property.images && property.images[0]
+                                                      ? property.images[0]
+                                                      : "/placeholder.svg"
+                                                  }
+                                                  alt={property.title}
+                                                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                                                  onError={(e) => {
+                                                    console.error("Image load error:", e.currentTarget.src);
+                                                    e.currentTarget.src = "/placeholder.svg";
+                                                  }}
+                                                />
                         </div>
 
                         <div className="lg:w-2/3 space-y-4">
@@ -726,14 +725,13 @@ const Properties = () => {
                     src={
                       selectedProperty.images && selectedProperty.images[currentImageIndex]
                         ? selectedProperty.images[currentImageIndex]
-                        : "/placeholder-image.jpg"
+                        : "/placeholder.svg"
                     }
                     alt={selectedProperty.title}
                     className="w-full h-64 md:h-96 object-cover rounded-lg"
                     onError={(e) => {
-                      console.error("Image load error:", e.currentTarget.src);
-                      e.currentTarget.src = "/placeholder-image.jpg";
-                    }}
+                                                     console.error("Image load error:", e.currentTarget.src);
+                                                     e.currentTarget.src = "/placeholder.svg";                    }}
                   />
 
                   {selectedProperty.images.length > 1 && (
