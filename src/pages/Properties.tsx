@@ -442,7 +442,9 @@ const Properties = () => {
                             : "/placeholder.svg"
                         }
                         alt={property.title}
-                        className="w-full h-full object-cover block loading="lazy" decoding="async" group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                           console.error("Image load error:", e.currentTarget.src);
                           e.currentTarget.src = "/placeholder.svg";
@@ -571,20 +573,21 @@ const Properties = () => {
                       <div className="flex flex-col lg:flex-row gap-6">
                         <div className="lg:w-1/3">
                           <div className="relative h-48">
-                                                <img
-                                                  src={
-                                                    property.images && property.images[0]
-                                                      ? property.images[0]
-                                                      : "/placeholder.svg"
-                                                  }
-                                                  alt={property.title}
-                                                  className="w-full h-full object-cover block loading="lazy" decoding="async" group-hover:scale-105 transition-transform duration-300"
-                                                  onError={(e) => {
-                                                    console.error("Image load error:", e.currentTarget.src);
-                                                    e.currentTarget.src = "/placeholder.svg";
-                                                  }}
-                                                />
-                          </div>
+                                                                                                 <img
+                                                                                                   src={
+                                                                                                     property.images && property.images[0]
+                                                                                                       ? property.images[0]
+                                                                                                       : "/placeholder.svg"
+                                                                                                   }
+                                                                                                   alt={property.title}
+                                                                                                   className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-300"
+                                                                                                   loading="lazy"
+                                                                                                   decoding="async"
+                                                                                                   onError={(e) => {
+                                                                                                     console.error("Image load error:", e.currentTarget.src);
+                                                                                                     e.currentTarget.src = "/placeholder.svg";
+                                                                                                   }}
+                                                                                                 />                          </div>
                         </div>
 
                         <div className="lg:w-2/3 space-y-4">
@@ -725,19 +728,20 @@ const Properties = () => {
 
               <div className="space-y-6">
                 <div className="relative w-full h-64 md:h-96">
-                  <img
-                    src={
-                      selectedProperty.images && selectedProperty.images[currentImageIndex]
-                        ? selectedProperty.images[currentImageIndex]
-                        : "/placeholder.svg"
-                    }
-                    alt={selectedProperty.title}
-                    className="w-full h-full object-cover rounded-lg loading="lazy" decoding="async""
-                    onError={(e) => {
-                                                     console.error("Image load error:", e.currentTarget.src);
-                                                     e.currentTarget.src = "/placeholder.svg";                    }}
-                  />
-
+                                     <img
+                                       src={
+                                         selectedProperty.images && selectedProperty.images[currentImageIndex]
+                                           ? selectedProperty.images[currentImageIndex]
+                                           : "/placeholder.svg"
+                                       }
+                                       alt={selectedProperty.title}
+                                       className="w-full h-full object-cover rounded-lg"
+                                       loading="lazy"
+                                       decoding="async"
+                                       onError={(e) => {
+                                                                       console.error("Image load error:", e.currentTarget.src);
+                                                                       e.currentTarget.src = "/placeholder.svg";                    }}
+                                     />
                   {selectedProperty.images.length > 1 && (
                     <>
                       <Button
