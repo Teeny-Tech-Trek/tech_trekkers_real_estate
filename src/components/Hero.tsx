@@ -197,7 +197,7 @@ const Hero = () => {
             >
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.1] font-black mb-6">
                 <span className="block text-white drop-shadow-2xl">
-                  AI Agents for
+                  AI Agents for Hii Govind
                 </span>
                 <span className="block mt-2 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
                   Real Estate
