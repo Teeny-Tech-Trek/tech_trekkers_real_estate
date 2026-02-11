@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Check, Star, Zap, Crown } from "lucide-react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion } from "framer-motion";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,6 +17,12 @@ const Pricing = () => {
   const faqDescRef = useRef(null);
   const faqItemsRef = useRef([]);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Use scroll detection to trigger animations only when visible
+  const { isVisible, hasAnimated } = useScrollAnimation({
+    threshold: 0.15,
+    rootMargin: '50px',
+  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -24,84 +31,66 @@ const Pricing = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Only initialize animations when element is visible
   useEffect(() => {
-    // Animate badge with 3D flip
+    if (!isVisible) return;
+
+    // Animate badge with 3D flip - Simplified for performance
     gsap.fromTo(
       badgeRef.current,
-      { opacity: 0, scale: 0.5, rotationY: -180 },
+      { opacity: 0, scale: 0.8, rotationY: -90 },
       {
         opacity: 1,
         scale: 1,
         rotationY: 0,
-        duration: 1,
-        ease: "back.out(1.7)",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 70%",
-        },
+        duration: 0.6,
+        ease: "back.out(1.2)",
       }
     );
 
-    // Animate title with 3D depth
+    // Animate title with reduced 3D complexity
     gsap.fromTo(
       titleRef.current,
-      { opacity: 0, y: 100, z: -100, rotationX: 45 },
+      { opacity: 0, y: 80 },
       {
         opacity: 1,
         y: 0,
-        z: 0,
-        rotationX: 0,
-        duration: 1.2,
-        delay: 0.3,
+        duration: 0.8,
+        delay: 0.1,
         ease: "power3.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 70%",
-        },
       }
     );
 
     // Animate description
     gsap.fromTo(
       descRef.current,
-      { opacity: 0, y: 30 },
+      { opacity: 0, y: 20 },
       {
         opacity: 1,
         y: 0,
-        duration: 0.8,
-        delay: 0.6,
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 70%",
-        },
+        duration: 0.6,
+        delay: 0.2,
+        ease: "power3.out",
       }
     );
 
-    // Stagger animation for pricing cards with 3D - FASTER
+    // Stagger animation for pricing cards - Reduced 3D for better performance
     cardsRef.current.forEach((card, index) => {
       if (card) {
         gsap.fromTo(
           card,
           {
             opacity: 0,
-            rotateX: 45,
-            rotateY: -25,
-            z: -200,
-            scale: 0.8,
+            rotateX: 25,
+            y: 40,
           },
           {
             opacity: 1,
             rotateX: 0,
-            rotateY: 0,
-            z: 0,
-            scale: 1,
-            duration: 0.8,
-            delay: 0.3 + index * 0.1,
+            y: 0,
+            duration: 0.6,
+            delay: 0.15 + index * 0.08,
             ease: "power3.out",
-            scrollTrigger: {
-              trigger: cardsRef.current[0],
-              start: "top 75%",
-            },
           }
         );
       }
@@ -110,58 +99,46 @@ const Pricing = () => {
     // Animation for FAQ title
     gsap.fromTo(
       faqTitleRef.current,
-      { opacity: 0, y: 50 },
+      { opacity: 0, y: 40 },
       {
         opacity: 1,
         y: 0,
-        duration: 0.8,
+        duration: 0.6,
         ease: "power3.out",
-        scrollTrigger: {
-          trigger: faqTitleRef.current,
-          start: "top 70%",
-        },
       }
     );
 
     // Animation for FAQ description
     gsap.fromTo(
       faqDescRef.current,
-      { opacity: 0, y: 30 },
+      { opacity: 0, y: 20 },
       {
         opacity: 1,
         y: 0,
-        duration: 0.8,
-        delay: 0.2,
+        duration: 0.5,
+        delay: 0.1,
         ease: "power3.out",
-        scrollTrigger: {
-          trigger: faqTitleRef.current,
-          start: "top 70%",
-        },
       }
     );
 
     // Stagger animation for FAQ items
     gsap.fromTo(
       faqItemsRef.current,
-      { opacity: 0, y: 50, scale: 0.95 },
+      { opacity: 0, y: 30 },
       {
         opacity: 1,
         y: 0,
-        scale: 1,
-        duration: 0.8,
-        stagger: 0.15,
+        duration: 0.5,
+        stagger: 0.1,
         ease: "power3.out",
-        scrollTrigger: {
-          trigger: faqItemsRef.current[0],
-          start: "top 70%",
-        },
       }
     );
 
+    // Cleanup: Kill ScrollTriggers on unmount to prevent memory leaks
     return () => {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, []);
+  }, [isVisible]);
 
   // Floating particles component
   const FloatingParticle = ({ delay, duration, initialX, initialY, size = 2 }) => (
@@ -246,6 +223,7 @@ const Pricing = () => {
 
   return (
     <div 
+      ref={sectionRef}
       className="min-h-screen overflow-hidden relative"
       style={{
         background: 'linear-gradient(135deg, #1e3a8a 0%, #1e293b 50%, #1e3a8a 100%)',
@@ -293,7 +271,7 @@ const Pricing = () => {
       )}
 
       {/* Header */}
-      <div ref={sectionRef} className="container mx-auto px-6 lg:px-12 py-16 md:py-24 text-center relative z-10" style={{ perspective: "1500px" }}>
+      <div className="container mx-auto px-6 lg:px-12 py-16 md:py-24 text-center relative z-10" style={{ perspective: "1500px" }}>
       
         
         <h1 

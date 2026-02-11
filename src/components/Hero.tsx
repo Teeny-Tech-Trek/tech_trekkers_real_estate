@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles, Zap, TrendingUp, Bot } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import React from "react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import robotImg from "../imges/ChatGPT Image Nov 14, 2025, 06_44_35 PM.png"
 import estateVideo from "../imges/ai agent final animation video.mp4"
 
@@ -11,8 +12,12 @@ const Hero = () => {
   const robotRef = useRef(null);
   const robotInnerRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
-  // const [showPopup, setShowPopup] = React.useState(false);
-
+  
+  // Detect when hero comes into view
+  const { isVisible, hasAnimated } = useScrollAnimation({
+    threshold: 0.3,
+    rootMargin: '100px',
+  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -21,59 +26,72 @@ const Hero = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // GSAP Scale Animation on Load
+  // GSAP Scale Animation on hero visibility - Reduced complexity
   useEffect(() => {
-    if (!robotRef.current) return;
+    if (!isVisible || !robotRef.current || hasAnimated) return;
 
-    // Scale from 0 to 100% with bounce effect
+    // Simplified scale animation - removed expensive elastic easing
     gsap.fromTo(
       robotRef.current,
       {
-        scale: 0,
+        scale: 0.9,
         opacity: 0,
-        rotationY: -180,
       },
       {
         scale: 1,
         opacity: 1,
-        rotationY: 0,
-        duration: 2,
-        delay: 0.5,
-        ease: "elastic.out(1, 0.6)",
+        duration: 1.2,
+        ease: "power3.out",
       }
     );
-  }, []);
+  }, [isVisible, hasAnimated]);
 
-  // GSAP Smooth Mouse Movement
+  // GSAP Smooth Mouse Movement - Debounced
   useEffect(() => {
     if (isMobile || !robotInnerRef.current) return;
 
-    const handleMouseMove = (e) => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return;
+    let animationFrameId: number;
+    let mouseX = 0;
+    let mouseY = 0;
 
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+    const handleMouseMove = (e: MouseEvent) => {
+      // Cancel previous frame if exists
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
 
-      // Calculate rotation based on mouse position (reduced intensity)
-      const xRotation = ((e.clientY - centerY) / rect.height) * -10; // Max 10 degrees
-      const yRotation = ((e.clientX - centerX) / rect.width) * 10; // Max 10 degrees
+      // Schedule update for next frame
+      animationFrameId = requestAnimationFrame(() => {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect) return;
 
-      // GSAP smooth animation with slow easing
-      gsap.to(robotInnerRef.current, {
-        rotationX: xRotation,
-        rotationY: yRotation,
-        duration: 0.15, // Slower movement
-        ease: "power3.out", // Smooth easing
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // Calculate rotation based on mouse position (reduced intensity)
+        const xRotation = ((e.clientY - centerY) / rect.height) * -8; // Reduced from -10
+        const yRotation = ((e.clientX - centerX) / rect.width) * 8; // Reduced from 10
+
+        // Use more efficient animation
+        gsap.to(robotInnerRef.current, {
+          rotationX: xRotation,
+          rotationY: yRotation,
+          duration: 0.2, // Slightly longer for smoother feel
+          ease: "power2.out",
+          overwrite: "auto", // Prevent animation queue buildup
+        });
       });
     };
 
     const handleMouseLeave = () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
       // Reset to original position smoothly
       gsap.to(robotInnerRef.current, {
         rotationX: 0,
         rotationY: 0,
-        duration: 0.2,
+        duration: 0.3,
         ease: "power2.out",
       });
     };
@@ -82,21 +100,24 @@ const Hero = () => {
     containerRef.current?.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
       window.removeEventListener("mousemove", handleMouseMove);
       containerRef.current?.removeEventListener("mouseleave", handleMouseLeave);
     };
   }, [isMobile]);
 
-  // Floating particles
-  const FloatingParticle = ({ delay, duration, initialX, initialY, size = 2 }) => (
+  // Floating particles - Memoized for performance
+  const FloatingParticle = React.memo(({ delay, duration, initialX, initialY, size = 2 }) => (
     <motion.div
       className="absolute rounded-full bg-white/20"
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, willChange: "transform" }}
       initial={{ x: initialX, y: initialY, opacity: 0 }}
       animate={{
-        x: [initialX, initialX + 50, initialX],
-        y: [initialY, initialY - 100, initialY],
-        opacity: [0, 0.6, 0],
+        x: [initialX, initialX + 40, initialX],
+        y: [initialY, initialY - 80, initialY],
+        opacity: [0, 0.4, 0],
       }}
       transition={{
         duration,
@@ -105,7 +126,7 @@ const Hero = () => {
         ease: "easeInOut",
       }}
     />
-  );
+  ));
 
   return (
     <section
@@ -141,17 +162,17 @@ const Hero = () => {
         }}
       />
 
-      {/* Floating particles */}
+      {/* Floating particles - Reduced count for better performance */}
       {!isMobile && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => (
+          {[...Array(8)].map((_, i) => (
             <FloatingParticle
               key={i}
-              delay={i * 0.4}
-              duration={6 + i * 0.3}
+              delay={i * 0.5}
+              duration={5 + i * 0.2}
               initialX={Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000)}
               initialY={Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800)}
-              size={Math.random() * 3 + 1}
+              size={Math.random() * 2.5 + 1}
             />
           ))}
         </div>

@@ -951,3 +951,582 @@ const AvatarsSkeleton = () => {
 };
 
 export default Avatars;
+
+//////////////////////////////////////////////////////////////////////
+
+// import React, { useState } from 'react';
+// import {
+//   Plus,
+//   RefreshCw,
+//   MoreVertical,
+//   QrCode,
+//   Play,
+//   Pause,
+//   Edit,
+//   Trash2,
+//   X,
+//   Download,
+//   Users,
+//   MessageSquare,
+//   TrendingUp,
+//   CheckCircle,
+//   Clock,
+//   FileText,
+//   Sparkles,
+//   Bot
+// } from 'lucide-react';
+
+// // Types
+// interface Agent {
+//   id: string;
+//   name: string;
+//   personality: string;
+//   description: string;
+//   status: 'active' | 'paused' | 'draft';
+//   conversations: number;
+//   conversions: number;
+//   lastUpdated: string;
+//   avatar: string;
+// }
+
+// // Mock Data
+// const mockAgents: Agent[] = [
+//   {
+//     id: '1',
+//     name: 'Sarah - Sales Expert',
+//     personality: 'Professional & Friendly',
+//     description: 'Specialized in luxury residential properties. Expert in handling high-net-worth clients with personalized service.',
+//     status: 'active',
+//     conversations: 342,
+//     conversions: 48,
+//     lastUpdated: '2 hours ago',
+//     avatar: 'SE'
+//   },
+//   {
+//     id: '2',
+//     name: 'Marcus - Commercial Pro',
+//     personality: 'Direct & Results-Driven',
+//     description: 'Focuses on commercial real estate deals. Strong negotiation skills and business-oriented communication.',
+//     status: 'active',
+//     conversations: 256,
+//     conversions: 35,
+//     lastUpdated: '5 hours ago',
+//     avatar: 'MP'
+//   },
+//   {
+//     id: '3',
+//     name: 'Emily - First-Time Buyer Specialist',
+//     personality: 'Patient & Educational',
+//     description: 'Guides first-time home buyers through the entire process with empathy and detailed explanations.',
+//     status: 'paused',
+//     conversations: 189,
+//     conversions: 22,
+//     lastUpdated: '1 day ago',
+//     avatar: 'EF'
+//   },
+// ];
+
+// export default function Avatars() {
+//   const [agents, setAgents] = useState<Agent[]>(mockAgents);
+//   const [showCreateModal, setShowCreateModal] = useState(false);
+//   const [showQRModal, setShowQRModal] = useState(false);
+//   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+//   const [formData, setFormData] = useState({
+//     name: '',
+//     personality: '',
+//     description: '',
+//     role: ''
+//   });
+
+//   const maxAgents = 10;
+//   const totalAgents = agents.length;
+//   const activeAgents = agents.filter(a => a.status === 'active').length;
+//   const totalConversations = agents.reduce((sum, a) => sum + a.conversations, 0);
+
+//   const handleCreateAgent = () => {
+//     if (!formData.name || !formData.personality) return;
+
+//     const newAgent: Agent = {
+//       id: Date.now().toString(),
+//       name: formData.name,
+//       personality: formData.personality,
+//       description: formData.description,
+//       status: 'draft',
+//       conversations: 0,
+//       conversions: 0,
+//       lastUpdated: 'Just now',
+//       avatar: formData.name.substring(0, 2).toUpperCase()
+//     };
+
+//     setAgents([...agents, newAgent]);
+//     setShowCreateModal(false);
+//     setFormData({ name: '', personality: '', description: '', role: '' });
+//   };
+
+//   const toggleAgentStatus = (agentId: string) => {
+//     setAgents(agents.map(agent => {
+//       if (agent.id === agentId) {
+//         return {
+//           ...agent,
+//           status: agent.status === 'active' ? 'paused' : 'active'
+//         } as Agent;
+//       }
+//       return agent;
+//     }));
+//   };
+
+//   const handleShowQR = (agent: Agent) => {
+//     setSelectedAgent(agent);
+//     setShowQRModal(true);
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-[#0B1120]">
+//       <div className="max-w-7xl mx-auto px-6 py-8">
+//         {/* Header Section */}
+//         <div className="mb-8">
+//           <div className="flex items-start justify-between">
+//             <div>
+//               <h1 className="text-3xl font-bold text-white mb-2">AI Agents</h1>
+//               <p className="text-slate-400">Manage and monitor your AI sales agents</p>
+//             </div>
+//             <div className="flex items-center gap-4">
+//               {/* Plan Usage */}
+//               <div className="bg-[#162238] border border-slate-700/50 rounded-lg px-4 py-2.5">
+//                 <div className="flex items-center gap-3">
+//                   <div className="text-sm">
+//                     <span className="text-white font-semibold">{totalAgents}</span>
+//                     <span className="text-slate-400"> / {maxAgents}</span>
+//                     <span className="text-slate-500 ml-1">Agents Used</span>
+//                   </div>
+//                   <div className="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+//                     <div 
+//                       className="h-full bg-blue-500 rounded-full transition-all"
+//                       style={{ width: `${(totalAgents / maxAgents) * 100}%` }}
+//                     />
+//                   </div>
+//                 </div>
+//               </div>
+
+//               {/* Refresh Button */}
+//               <button className="p-2.5 bg-[#162238] border border-slate-700/50 rounded-lg hover:bg-[#1a2844] transition-colors">
+//                 <RefreshCw className="w-4 h-4 text-slate-400" />
+//               </button>
+
+//               {/* Create Agent Button */}
+//               <button
+//                 onClick={() => setShowCreateModal(true)}
+//                 disabled={totalAgents >= maxAgents}
+//                 className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors"
+//               >
+//                 <Plus className="w-4 h-4" />
+//                 Create Agent
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* KPI Stats Row */}
+//         <div className="grid grid-cols-3 gap-4 mb-8">
+//           <StatCard
+//             icon={Bot}
+//             label="Total Agents"
+//             value={totalAgents.toString()}
+//             subtext={`${maxAgents - totalAgents} remaining`}
+//           />
+//           <StatCard
+//             icon={CheckCircle}
+//             label="Active Agents"
+//             value={activeAgents.toString()}
+//             subtext={`${agents.filter(a => a.status === 'paused').length} paused`}
+//           />
+//           <StatCard
+//             icon={MessageSquare}
+//             label="Total Conversations"
+//             value={totalConversations.toLocaleString()}
+//             subtext="Across all agents"
+//           />
+//         </div>
+
+//         {/* Agents Grid */}
+//         {agents.length === 0 ? (
+//           <EmptyState onCreateClick={() => setShowCreateModal(true)} />
+//         ) : (
+//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+//             {agents.map((agent) => (
+//               <AgentCard
+//                 key={agent.id}
+//                 agent={agent}
+//                 onToggleStatus={() => toggleAgentStatus(agent.id)}
+//                 onShowQR={() => handleShowQR(agent)}
+//               />
+//             ))}
+//           </div>
+//         )}
+//       </div>
+
+//       {/* Create Agent Modal */}
+//       {showCreateModal && (
+//         <Modal onClose={() => setShowCreateModal(false)}>
+//           <div className="bg-[#0d1b2a] rounded-xl border border-slate-700/50 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+//             {/* Modal Header */}
+//             <div className="flex items-center justify-between p-6 border-b border-slate-700/50">
+//               <div>
+//                 <h2 className="text-2xl font-bold text-white">Create AI Agent</h2>
+//                 <p className="text-slate-400 text-sm mt-1">Configure your new AI sales agent</p>
+//               </div>
+//               <button
+//                 onClick={() => setShowCreateModal(false)}
+//                 className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors"
+//               >
+//                 <X className="w-5 h-5 text-slate-400" />
+//               </button>
+//             </div>
+
+//             {/* Plan Usage Info */}
+//             <div className="mx-6 mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+//               <div className="flex items-start gap-3">
+//                 <Sparkles className="w-5 h-5 text-blue-400 mt-0.5" />
+//                 <div>
+//                   <p className="text-sm text-blue-100 font-medium">
+//                     {maxAgents - totalAgents} agent slots remaining
+//                   </p>
+//                   <p className="text-xs text-blue-300/70 mt-1">
+//                     You're using {totalAgents} of {maxAgents} available AI agents on your current plan.
+//                   </p>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Form Content */}
+//             <div className="p-6 space-y-6">
+//               {/* Basic Information */}
+//               <div>
+//                 <h3 className="text-sm font-semibold text-white mb-4">Basic Information</h3>
+//                 <div className="space-y-4">
+//                   <div>
+//                     <label className="block text-sm text-slate-300 mb-2">Agent Name *</label>
+//                     <input
+//                       type="text"
+//                       value={formData.name}
+//                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+//                       placeholder="e.g., Sarah - Sales Expert"
+//                       className="w-full px-4 py-2.5 bg-[#162238] border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+//                     />
+//                   </div>
+
+//                   <div>
+//                     <label className="block text-sm text-slate-300 mb-2">Personality *</label>
+//                     <input
+//                       type="text"
+//                       value={formData.personality}
+//                       onChange={(e) => setFormData({ ...formData, personality: e.target.value })}
+//                       placeholder="e.g., Professional & Friendly"
+//                       className="w-full px-4 py-2.5 bg-[#162238] border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+//                     />
+//                   </div>
+//                 </div>
+//               </div>
+
+//               {/* Role Description */}
+//               <div>
+//                 <h3 className="text-sm font-semibold text-white mb-4">Role Description</h3>
+//                 <div>
+//                   <label className="block text-sm text-slate-300 mb-2">Role & Specialization</label>
+//                   <input
+//                     type="text"
+//                     value={formData.role}
+//                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+//                     placeholder="e.g., Luxury Residential Specialist"
+//                     className="w-full px-4 py-2.5 bg-[#162238] border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all mb-4"
+//                   />
+                  
+//                   <label className="block text-sm text-slate-300 mb-2">Description</label>
+//                   <textarea
+//                     value={formData.description}
+//                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+//                     placeholder="Describe the agent's expertise and communication style..."
+//                     rows={4}
+//                     className="w-full px-4 py-2.5 bg-[#162238] border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
+//                   />
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Modal Footer */}
+//             <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-700/50">
+//               <button
+//                 onClick={() => setShowCreateModal(false)}
+//                 className="px-5 py-2.5 border border-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-700/30 transition-colors font-medium"
+//               >
+//                 Cancel
+//               </button>
+//               <button
+//                 onClick={handleCreateAgent}
+//                 disabled={!formData.name || !formData.personality}
+//                 className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors"
+//               >
+//                 Create Agent
+//               </button>
+//             </div>
+//           </div>
+//         </Modal>
+//       )}
+
+//       {/* QR Code Modal */}
+//       {showQRModal && selectedAgent && (
+//         <Modal onClose={() => setShowQRModal(false)}>
+//           <div className="bg-[#0d1b2a] rounded-xl border border-slate-700/50 max-w-md w-full">
+//             {/* Modal Header */}
+//             <div className="flex items-center justify-between p-6 border-b border-slate-700/50">
+//               <div>
+//                 <h2 className="text-xl font-bold text-white">Agent QR Code</h2>
+//                 <p className="text-slate-400 text-sm mt-1">{selectedAgent.name}</p>
+//               </div>
+//               <button
+//                 onClick={() => setShowQRModal(false)}
+//                 className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors"
+//               >
+//                 <X className="w-5 h-5 text-slate-400" />
+//               </button>
+//             </div>
+
+//             {/* QR Code Content */}
+//             <div className="p-8">
+//               <div className="bg-white rounded-lg p-8 flex items-center justify-center">
+//                 <div className="w-48 h-48 bg-slate-200 rounded-lg flex items-center justify-center">
+//                   <QrCode className="w-32 h-32 text-slate-600" />
+//                 </div>
+//               </div>
+//               <p className="text-center text-slate-400 text-sm mt-4">
+//                 Scan this QR code to start a conversation with {selectedAgent.name}
+//               </p>
+//             </div>
+
+//             {/* Modal Footer */}
+//             <div className="flex items-center justify-center gap-3 p-6 border-t border-slate-700/50">
+//               <button className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+//                 <Download className="w-4 h-4" />
+//                 Download QR Code
+//               </button>
+//             </div>
+//           </div>
+//         </Modal>
+//       )}
+//     </div>
+//   );
+// }
+
+// // Subcomponents
+// function StatCard({ 
+//   icon: Icon, 
+//   label, 
+//   value, 
+//   subtext 
+// }: { 
+//   icon: any; 
+//   label: string; 
+//   value: string; 
+//   subtext: string;
+// }) {
+//   return (
+//     <div className="bg-[#162238] border border-slate-700/50 rounded-lg p-5">
+//       <div className="flex items-start justify-between mb-4">
+//         <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+//           <Icon className="w-5 h-5 text-blue-400" />
+//         </div>
+//       </div>
+//       <div className="text-3xl font-bold text-white mb-1">{value}</div>
+//       <div className="text-sm text-slate-400 mb-0.5">{label}</div>
+//       <div className="text-xs text-slate-500">{subtext}</div>
+//     </div>
+//   );
+// }
+
+// function AgentCard({ 
+//   agent, 
+//   onToggleStatus, 
+//   onShowQR 
+// }: { 
+//   agent: Agent; 
+//   onToggleStatus: () => void;
+//   onShowQR: () => void;
+// }) {
+//   const [showMenu, setShowMenu] = useState(false);
+
+//   const statusConfig = {
+//     active: { label: 'Active', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+//     paused: { label: 'Paused', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+//     draft: { label: 'Draft', color: 'bg-slate-500/10 text-slate-400 border-slate-500/20' }
+//   };
+
+//   const status = statusConfig[agent.status];
+//   const conversionRate = agent.conversations > 0 
+//     ? Math.round((agent.conversions / agent.conversations) * 100) 
+//     : 0;
+
+//   return (
+//     <div className="bg-[#162238] border border-slate-700/50 rounded-lg p-5 hover:border-slate-600/50 transition-all">
+//       {/* Top Section */}
+//       <div className="flex items-start justify-between mb-4">
+//         <div className="flex items-start gap-3 flex-1">
+//           <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0">
+//             {agent.avatar}
+//           </div>
+//           <div className="flex-1 min-w-0">
+//             <h3 className="text-white font-semibold truncate">{agent.name}</h3>
+//             <p className="text-slate-400 text-sm">{agent.personality}</p>
+//           </div>
+//         </div>
+//         <div className="flex items-center gap-2">
+//           <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${status.color}`}>
+//             {status.label}
+//           </span>
+//           <div className="relative">
+//             <button
+//               onClick={() => setShowMenu(!showMenu)}
+//               className="p-1.5 hover:bg-slate-700/50 rounded-md transition-colors"
+//             >
+//               <MoreVertical className="w-4 h-4 text-slate-400" />
+//             </button>
+//             {showMenu && (
+//               <>
+//                 <div 
+//                   className="fixed inset-0 z-10" 
+//                   onClick={() => setShowMenu(false)}
+//                 />
+//                 <div className="absolute right-0 mt-1 w-40 bg-[#0d1b2a] border border-slate-700/50 rounded-lg shadow-xl z-20 py-1">
+//                   <button className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 flex items-center gap-2">
+//                     <Edit className="w-4 h-4" />
+//                     Edit
+//                   </button>
+//                   <button className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-slate-700/50 flex items-center gap-2">
+//                     <Trash2 className="w-4 h-4" />
+//                     Delete
+//                   </button>
+//                 </div>
+//               </>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Description */}
+//       <p className="text-slate-400 text-sm mb-4 line-clamp-2">
+//         {agent.description}
+//       </p>
+
+//       {/* Performance Metrics */}
+//       <div className="space-y-2.5 mb-4 pb-4 border-b border-slate-700/50">
+//         <MetricRow label="Conversations" value={agent.conversations.toString()} />
+//         <MetricRow 
+//           label="Conversions" 
+//           value={agent.conversions.toString()} 
+//           percentage={conversionRate}
+//         />
+//         <MetricRow label="Last Updated" value={agent.lastUpdated} icon={Clock} />
+//       </div>
+
+//       {/* Actions */}
+//       <div className="flex items-center gap-2">
+//         <button
+//           onClick={onShowQR}
+//           className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-700/30 transition-colors text-sm font-medium"
+//         >
+//           <QrCode className="w-4 h-4" />
+//           QR Code
+//         </button>
+//         <button
+//           onClick={onToggleStatus}
+//           className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+//             agent.status === 'active'
+//               ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20'
+//               : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
+//           }`}
+//         >
+//           {agent.status === 'active' ? (
+//             <>
+//               <Pause className="w-4 h-4" />
+//               Pause
+//             </>
+//           ) : (
+//             <>
+//               <Play className="w-4 h-4" />
+//               Activate
+//             </>
+//           )}
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+// function MetricRow({ 
+//   label, 
+//   value, 
+//   icon: Icon, 
+//   percentage 
+// }: { 
+//   label: string; 
+//   value: string; 
+//   icon?: any; 
+//   percentage?: number;
+// }) {
+//   return (
+//     <div className="flex items-center justify-between text-sm">
+//       <div className="flex items-center gap-2 text-slate-400">
+//         {Icon && <Icon className="w-3.5 h-3.5" />}
+//         <span>{label}</span>
+//       </div>
+//       <div className="flex items-center gap-2">
+//         <span className="text-white font-medium">{value}</span>
+//         {percentage !== undefined && (
+//           <div className="flex items-center gap-1">
+//             <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+//               <div 
+//                 className="h-full bg-emerald-500 rounded-full transition-all"
+//                 style={{ width: `${percentage}%` }}
+//               />
+//             </div>
+//             <span className="text-slate-500 text-xs w-8 text-right">{percentage}%</span>
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+// function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
+//   return (
+//     <div className="flex flex-col items-center justify-center py-20 px-4">
+//       <div className="w-20 h-20 bg-[#162238] border border-slate-700/50 rounded-xl flex items-center justify-center mb-6">
+//         <Bot className="w-10 h-10 text-slate-500" />
+//       </div>
+//       <h3 className="text-xl font-semibold text-white mb-2">No AI Agents Created</h3>
+//       <p className="text-slate-400 text-center max-w-md mb-6">
+//         AI Agents automate conversations and convert leads into customers. Create your first agent to get started.
+//       </p>
+//       <button
+//         onClick={onCreateClick}
+//         className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+//       >
+//         <Plus className="w-5 h-5" />
+//         Create First Agent
+//       </button>
+//     </div>
+//   );
+// }
+
+// function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+//       <div 
+//         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+//         onClick={onClose}
+//       />
+//       <div className="relative z-10 animate-in fade-in duration-200">
+//         {children}
+//       </div>
+//     </div>
+//   );
+// }

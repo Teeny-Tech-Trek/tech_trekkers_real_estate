@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion } from "framer-motion";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,6 +13,12 @@ const HumanoidSection = () => {
   const badgeRef = useRef(null);
   const subtitleRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Use scroll detection to trigger animations
+  const { isVisible } = useScrollAnimation({
+    threshold: 0.15,
+    rootMargin: '50px',
+  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -21,82 +28,64 @@ const HumanoidSection = () => {
   }, []);
 
   useEffect(() => {
-    // Animate badge with 3D flip
+    if (!isVisible) return;
+
+    // Animate badge - Simplified for performance
     gsap.fromTo(
       badgeRef.current,
-      { opacity: 0, scale: 0.5, rotationY: -180 },
+      { opacity: 0, scale: 0.8, rotationY: -90 },
       {
         opacity: 1,
         scale: 1,
         rotationY: 0,
-        duration: 1,
-        ease: "back.out(1.7)",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 70%",
-        },
+        duration: 0.6,
+        ease: "back.out(1.2)",
       }
     );
 
-    // Animate title with 3D depth
+    // Animate title - Reduced 3D complexity
     gsap.fromTo(
       titleRef.current,
-      { opacity: 0, y: 100, z: -100, rotationX: 45 },
-      {
-        opacity: 1,
-        y: 0,
-        z: 0,
-        rotationX: 0,
-        duration: 1.2,
-        delay: 0.3,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 70%",
-        },
-      }
-    );
-
-    gsap.fromTo(
-      subtitleRef.current,
-      { opacity: 0, y: 30 },
+      { opacity: 0, y: 80 },
       {
         opacity: 1,
         y: 0,
         duration: 0.8,
-        delay: 0.6,
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 70%",
-        },
+        delay: 0.1,
+        ease: "power3.out",
       }
     );
 
-    // Animate cards with 3D perspective and stagger
+    // Animate subtitle
+    gsap.fromTo(
+      subtitleRef.current,
+      { opacity: 0, y: 20 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        delay: 0.2,
+        ease: "power3.out",
+      }
+    );
+
+    // Animate cards - Simplified 3D
     cardsRef.current.forEach((card, index) => {
       if (card) {
         gsap.fromTo(
           card,
           {
             opacity: 0,
-            rotateX: 45,
-            rotateY: -25,
-            z: -200,
-            scale: 0.8,
+            rotateX: 25,
+            y: 40,
           },
           {
             opacity: 1,
             rotateX: 0,
-            rotateY: 0,
-            z: 0,
-            scale: 1,
-            duration: 1.2,
-            delay: 0.8 + index * 0.2,
+            y: 0,
+            duration: 0.6,
+            delay: 0.15 + index * 0.1,
             ease: "power3.out",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top 60%",
-            },
           }
         );
       }
@@ -105,18 +94,18 @@ const HumanoidSection = () => {
     return () => {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, []);
+  }, [isVisible]);
 
-  // Floating particles component
-  const FloatingParticle = ({ delay, duration, initialX, initialY, size = 2 }) => (
+  // Floating particles component - Memoized for performance
+  const FloatingParticle = React.memo(({ delay, duration, initialX, initialY, size = 2 }) => (
     <motion.div
       className="absolute rounded-full bg-white/20"
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, willChange: "transform" }}
       initial={{ x: initialX, y: initialY, opacity: 0 }}
       animate={{
-        x: [initialX, initialX + 50, initialX],
-        y: [initialY, initialY - 100, initialY],
-        opacity: [0, 0.6, 0],
+        x: [initialX, initialX + 40, initialX],
+        y: [initialY, initialY - 80, initialY],
+        opacity: [0, 0.4, 0],
       }}
       transition={{
         duration,
@@ -125,7 +114,7 @@ const HumanoidSection = () => {
         ease: "easeInOut",
       }}
     />
-  );
+  ));
 
   const cards = [
     {
@@ -178,17 +167,17 @@ const HumanoidSection = () => {
         }}
       />
 
-      {/* Floating particles - Same as Hero */}
+      {/* Floating particles - Reduced count for better performance */}
       {!isMobile && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => (
+          {[...Array(8)].map((_, i) => (
             <FloatingParticle
               key={i}
-              delay={i * 0.4}
-              duration={6 + i * 0.3}
+              delay={i * 0.5}
+              duration={5 + i * 0.2}
               initialX={Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000)}
               initialY={Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800)}
-              size={Math.random() * 3 + 1}
+              size={Math.random() * 2.5 + 1}
             />
           ))}
         </div>

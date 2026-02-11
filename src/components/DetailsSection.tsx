@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion } from "framer-motion";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -14,6 +15,12 @@ const DetailsSection = () => {
   const featuresRef = useRef([]);
   const inputsRef = useRef([]);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Use scroll detection to trigger animations
+  const { isVisible } = useScrollAnimation({
+    threshold: 0.15,
+    rootMargin: '50px',
+  });
   
   const [formData, setFormData] = useState({
     fullName: "",
@@ -29,131 +36,105 @@ const DetailsSection = () => {
   }, []);
 
   useEffect(() => {
-    // Animate badge with 3D flip
+    if (!isVisible) return;
+
+    // Animate badge - Simplified for performance
     gsap.fromTo(
       badgeRef.current,
-      { opacity: 0, scale: 0.5, rotationY: -180 },
+      { opacity: 0, scale: 0.8, rotationY: -90 },
       {
         opacity: 1,
         scale: 1,
         rotationY: 0,
-        duration: 1,
-        ease: "back.out(1.7)",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 70%",
-        },
+        duration: 0.6,
+        ease: "back.out(1.2)",
       }
     );
 
-    // Animate title with 3D depth
+    // Animate title - Reduced 3D complexity
     gsap.fromTo(
       titleRef.current,
-      { opacity: 0, y: 100, z: -100, rotationX: 45 },
+      { opacity: 0, y: 80 },
       {
         opacity: 1,
         y: 0,
-        z: 0,
-        rotationX: 0,
-        duration: 1.2,
-        delay: 0.3,
+        duration: 0.8,
+        delay: 0.1,
         ease: "power3.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 70%",
-        },
       }
     );
 
-    // Animate left card with 3D perspective
+    // Animate left card - Simplified
     gsap.fromTo(
       leftCardRef.current,
-      { opacity: 0, x: -80, rotateY: -25, z: -200 },
+      { opacity: 0, x: -60, rotateY: -15 },
       {
         opacity: 1,
         x: 0,
         rotateY: 0,
-        z: 0,
-        duration: 1.2,
-        delay: 0.6,
+        duration: 0.8,
+        delay: 0.15,
         ease: "power3.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 60%",
-        },
       }
     );
 
-    // Animate right card with 3D perspective
+    // Animate right card - Simplified
     gsap.fromTo(
       rightCardRef.current,
-      { opacity: 0, x: 80, rotateY: 25, z: -200 },
+      { opacity: 0, x: 60, rotateY: 15 },
       {
         opacity: 1,
         x: 0,
         rotateY: 0,
-        z: 0,
-        duration: 1.2,
-        delay: 0.6,
+        duration: 0.8,
+        delay: 0.15,
         ease: "power3.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 60%",
-        },
       }
     );
 
     // Animate features with stagger
     gsap.fromTo(
       featuresRef.current,
-      { opacity: 0, x: -30, scale: 0.9 },
+      { opacity: 0, x: -20, scale: 0.95 },
       {
         opacity: 1,
         x: 0,
         scale: 1,
-        duration: 0.6,
-        stagger: 0.1,
+        duration: 0.5,
+        stagger: 0.08,
         ease: "power2.out",
-        scrollTrigger: {
-          trigger: leftCardRef.current,
-          start: "top 60%",
-        },
       }
     );
 
     // Animate inputs with stagger
     gsap.fromTo(
       inputsRef.current,
-      { opacity: 0, y: 30, scale: 0.95 },
+      { opacity: 0, y: 20, scale: 0.95 },
       {
         opacity: 1,
         y: 0,
         scale: 1,
-        duration: 0.6,
-        stagger: 0.1,
+        duration: 0.5,
+        stagger: 0.08,
         ease: "power2.out",
-        scrollTrigger: {
-          trigger: rightCardRef.current,
-          start: "top 60%",
-        },
       }
     );
 
     return () => {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, []);
+  }, [isVisible]);
 
-  // Floating particles component
-  const FloatingParticle = ({ delay, duration, initialX, initialY, size = 2 }) => (
+  // Floating particles component - Memoized for performance
+  const FloatingParticle = React.memo(({ delay, duration, initialX, initialY, size = 2 }) => (
     <motion.div
       className="absolute rounded-full bg-white/20"
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, willChange: "transform" }}
       initial={{ x: initialX, y: initialY, opacity: 0 }}
       animate={{
-        x: [initialX, initialX + 50, initialX],
-        y: [initialY, initialY - 100, initialY],
-        opacity: [0, 0.6, 0],
+        x: [initialX, initialX + 40, initialX],
+        y: [initialY, initialY - 80, initialY],
+        opacity: [0, 0.4, 0],
       }}
       transition={{
         duration,
@@ -162,7 +143,7 @@ const DetailsSection = () => {
         ease: "easeInOut",
       }}
     />
-  );
+  ));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -255,17 +236,17 @@ const DetailsSection = () => {
         }}
       />
 
-      {/* Floating particles - Same as HumanoidSection */}
+      {/* Floating particles - Reduced count for better performance */}
       {!isMobile && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => (
+          {[...Array(8)].map((_, i) => (
             <FloatingParticle
               key={i}
-              delay={i * 0.4}
-              duration={6 + i * 0.3}
+              delay={i * 0.5}
+              duration={5 + i * 0.2}
               initialX={Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000)}
               initialY={Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800)}
-              size={Math.random() * 3 + 1}
+              size={Math.random() * 2.5 + 1}
             />
           ))}
         </div>
