@@ -615,8 +615,8 @@ const AppLayout = () => {
       <div className="pt-16">
         {/* Page Content */}
         <main className="p-4 lg:p-6">
-          {/* <Outlet /> */}
-          < Dashboard/>
+          <Outlet />
+          {/* < Dashboard/> */}
         </main>
       </div>
     </div>

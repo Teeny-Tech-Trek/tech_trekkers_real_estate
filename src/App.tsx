@@ -8,7 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
 import Navbar from "@/components/Navbar";
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
+// import Dashboard from "./pages/Dashboard";
 import Avatars from "./pages/Avatars";
 import Properties from "./pages/Properties";
 import Leads from "./pages/Leads";
@@ -23,6 +23,9 @@ import ErrorBoundary from "./pages/ErrorBoundary";
 import AcceptInvitePage from "./pages/AcceptInvitePage";
 import Footer from "./components/Footer";
 import { useEffect } from "react";
+// import Dashboard from "./pages/Dashboard";
+import Dashboard from "./components/Dasboard";
+
 
 const queryClient = new QueryClient();
 
@@ -69,15 +72,26 @@ const App = () => (
             } />
             <Route path="/accept-invite" element={<AcceptInvitePage />} />
             <Route path="/agent/:id" element={<AgentChatPage />} />
-            <Route path="/" element={
+            {/* <Route path="/" element={
               <ProtectedRoute>
                 <>
                 
                   <AppLayout />
                 </>
               </ProtectedRoute>
-            }>
-              <Route path="dashboard" element={<Dashboard />} />
+            }> */}
+            <Route element={<ProtectedRoute />}>
+  <Route element={<AppLayout />}>
+    <Route path="/dashboard" element={<Dashboard />} />
+    <Route path="/avatars" element={<Avatars />} />
+    <Route path="/properties" element={<Properties />} />
+    <Route path="/leads" element={<Leads />} />
+    <Route path="/analytics" element={<Analytics />} />
+    <Route path="/settings" element={<Settings />} />
+  </Route>
+</Route>
+
+              {/* <Route path="dashboard" element={<Dashboard />} />
               <Route path="avatars" element={<Avatars />} />
               <Route path="properties" element={<Properties />} />
               <Route path="leads" element={<Leads />} />
@@ -90,7 +104,7 @@ const App = () => (
                 }
               />
               <Route path="settings" element={<Settings />} />
-            </Route>
+            </Route> */}
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
