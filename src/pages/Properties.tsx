@@ -1,11 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search, Plus, Home, TrendingUp, AlertTriangle, Eye, Edit, Trash2, Heart, MapPin, 
-  ChevronLeft, ChevronRight, Bed, Bath, Maximize2, Filter, BarChart3, MoreVertical,
-  Download, Share2, Copy, Settings, X, RefreshCw, Sparkles, Zap, ArrowUpRight,
-  Calendar, Users, Award, DollarSign, Shield, Map as MapIcon, 
-} from "lucide-react";
+import * as Lucide from "lucide-react";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import PropertyFormModal from "@/components/PropertyFormModal";
@@ -84,7 +79,7 @@ const Properties: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628]">
         <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 max-w-md">
           <div className="flex items-center gap-3 mb-3">
-            <AlertTriangle className="text-red-400" size={28} />
+            <Lucide.AlertTriangle className="text-red-400" size={28} />
             <h3 className="text-red-400 font-semibold text-xl">Error</h3>
           </div>
           <p className="text-slate-300">{String(error)}</p>
@@ -128,14 +123,14 @@ const Properties: React.FC = () => {
 
               {/* Action Buttons */}
               <button className="p-3 bg-slate-900/40 border border-slate-800/50 rounded-full hover:bg-slate-800/50 hover:border-slate-700/50 transition-all duration-200 backdrop-blur-sm group">
-                <RefreshCw className="w-4 h-4 text-slate-400 group-hover:text-slate-300 group-hover:rotate-180 transition-all duration-500" />
+                <Lucide.RefreshCw className="w-4 h-4 text-slate-400 group-hover:text-slate-300 group-hover:rotate-180 transition-all duration-500" />
               </button>
 
               <button
                 onClick={() => setView(view === "grid" ? "analytics" : "grid")}
                 className="p-3 bg-slate-900/40 border border-slate-800/50 rounded-full hover:bg-slate-800/50 hover:border-slate-700/50 transition-all duration-200 backdrop-blur-sm group"
               >
-                <BarChart3 className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-colors" />
+                <Lucide.BarChart3 className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-colors" />
               </button>
 
               <button
@@ -143,7 +138,7 @@ const Properties: React.FC = () => {
                 disabled={totalProperties >= maxProperties}
                 className="group flex items-center gap-2.5 px-6 py-3 bg-white hover:bg-slate-100 disabled:bg-slate-800 disabled:text-slate-500 text-slate-900 rounded-full font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100 disabled:border disabled:border-slate-700"
               >
-                <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+                <Lucide.Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
                 Add Property
               </button>
             </div>
@@ -157,7 +152,7 @@ const Properties: React.FC = () => {
                 <div className="flex items-baseline gap-3 mb-1.5">
                   <span className="text-5xl font-bold text-white tracking-tight">{totalProperties}</span>
                   <span className="text-emerald-400 text-sm font-semibold flex items-center gap-1">
-                    <TrendingUp className="w-3.5 h-3.5" />
+                    <Lucide.TrendingUp className="w-3.5 h-3.5" />
                     +12%
                   </span>
                 </div>
@@ -185,7 +180,7 @@ Location Insights
                 <div className="flex items-baseline gap-3 mb-1.5">
                   <span className="text-5xl font-bold text-white tracking-tight">{totalLeads}</span>
                   <span className="text-emerald-400 text-sm font-semibold flex items-center gap-1">
-                    <TrendingUp className="w-3.5 h-3.5" />
+                    <Lucide.TrendingUp className="w-3.5 h-3.5" />
                     +24%
                   </span>
                 </div>
@@ -201,7 +196,7 @@ Location Insights
                 <div className="flex items-baseline gap-3 mb-1.5">
                   <span className="text-5xl font-bold text-white tracking-tight">{avgInvestmentScore}%</span>
                   <span className="text-emerald-400 text-sm font-semibold flex items-center gap-1">
-                    <TrendingUp className="w-3.5 h-3.5" />
+                    <Lucide.TrendingUp className="w-3.5 h-3.5" />
                     +8%
                   </span>
                 </div>
@@ -214,7 +209,7 @@ Location Insights
           {/* Search and Filter Bar - Minimal */}
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Lucide.Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="text"
                 value={searchQuery}
@@ -380,7 +375,7 @@ function PropertyCard({
           className="absolute top-3 right-3 w-9 h-9 bg-slate-900/80 backdrop-blur-sm hover:bg-slate-800 border border-slate-700/50 rounded-lg flex items-center justify-center transition-colors" 
           onClick={onToggleFavorite}
         >
-          <Heart 
+          <Lucide.Heart 
             size={16} 
             className={property.favorite ? "fill-red-500 text-red-500" : "text-slate-400"} 
           />
@@ -395,7 +390,7 @@ function PropertyCard({
               {property.title}
             </h3>
             <div className="flex items-center text-slate-500 text-sm">
-              <MapPin size={14} className="mr-1.5 flex-shrink-0" />
+              <Lucide.MapPin size={14} className="mr-1.5 flex-shrink-0" />
               <span className="truncate">{property.location}</span>
             </div>
           </div>
@@ -405,7 +400,7 @@ function PropertyCard({
               onClick={onToggleMenu}
               className="p-1.5 hover:bg-slate-800/50 rounded-lg transition-all duration-200"
             >
-              <MoreVertical className="w-4 h-4 text-slate-500" />
+              <Lucide.MoreVertical className="w-4 h-4 text-slate-500" />
             </button>
             {showMenu && (
               <div className="absolute right-0 mt-2 w-44 bg-slate-800/95 backdrop-blur-xl border border-slate-200 rounded-xl shadow-2xl z-20 py-1.5 overflow-hidden">
@@ -413,18 +408,18 @@ function PropertyCard({
                   onClick={onView}
                   className="w-full px-3.5 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 flex items-center gap-2.5 transition-colors"
                 >
-                  <Eye className="w-3.5 h-3.5" />
+                  <Lucide.Eye className="w-3.5 h-3.5" />
                   View Details
                 </button>
                 <button 
                   onClick={onEdit}
                   className="w-full px-3.5 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 flex items-center gap-2.5 transition-colors"
                 >
-                  <Edit className="w-3.5 h-3.5" />
+                  <Lucide.Edit className="w-3.5 h-3.5" />
                   Edit Property
                 </button>
                 <button className="w-full px-3.5 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 flex items-center gap-2.5 transition-colors">
-                  <Share2 className="w-3.5 h-3.5" />
+                  <Lucide.Share2 className="w-3.5 h-3.5" />
                   Share
                 </button>
                 <div className="h-px bg-slate-700/50 my-1.5" />
@@ -432,7 +427,7 @@ function PropertyCard({
                   onClick={onDelete}
                   className="w-full px-3.5 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2.5 transition-colors"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Lucide.Trash2 className="w-3.5 h-3.5" />
                   Delete
                 </button>
               </div>
@@ -450,15 +445,15 @@ function PropertyCard({
         {/* Property Details */}
         <div className="flex items-center justify-between mb-5 pb-5 border-b border-slate-800/50">
           <div className="flex items-center gap-1.5 text-slate-300">
-            <Bed size={16} className="text-slate-500" />
+            <Lucide.Bed size={16} className="text-slate-500" />
             <span className="text-sm font-medium">{property.bedrooms}</span>
           </div>
           <div className="flex items-center gap-1.5 text-slate-300">
-            <Bath size={16} className="text-slate-500" />
+            <Lucide.Bath size={16} className="text-slate-500" />
             <span className="text-sm font-medium">{property.bathrooms}</span>
           </div>
           <div className="flex items-center gap-1.5 text-slate-300">
-            <Maximize2 size={16} className="text-slate-500" />
+            <Lucide.Maximize2 size={16} className="text-slate-500" />
             <span className="text-sm font-medium">{property.area} {property.areaUnit}</span>
           </div>
         </div>
@@ -493,14 +488,14 @@ function PropertyCard({
             onClick={onView}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-800 hover:border-slate-600/50 hover:text-white transition-all duration-200 text-sm font-medium"
           >
-            <Eye className="w-4 h-4" />
+            <Lucide.Eye className="w-4 h-4" />
             View
           </button>
           <button
             onClick={onEdit}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 text-white border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-200 text-sm font-medium"
           >
-            <Edit className="w-4 h-4" />
+            <Lucide.Edit className="w-4 h-4" />
             Edit
           </button>
         </div>
@@ -541,17 +536,17 @@ function PropertyAnalyticsCard({ property, index, onView, onEdit }: PropertyAnal
               <div>
                 <h3 className="text-2xl font-bold text-white mb-2">{property.title}</h3>
                 <div className="flex items-center text-slate-400 mb-3">
-                  <MapPin size={16} className="mr-2" />
+                  <Lucide.MapPin size={16} className="mr-2" />
                   <span>{property.location}</span>
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                  <Bed size={16} className="text-slate-500" />
+                  <Lucide.Bed size={16} className="text-slate-500" />
                   <span className="text-sm text-slate-300">{property.bedrooms}</span>
                   <span className="text-slate-600">•</span>
-                  <Bath size={16} className="text-slate-500" />
+                  <Lucide.Bath size={16} className="text-slate-500" />
                   <span className="text-sm text-slate-300">{property.bathrooms}</span>
                   <span className="text-slate-600">•</span>
-                  <Maximize2 size={16} className="text-slate-500" />
+                  <Lucide.Maximize2 size={16} className="text-slate-500" />
                   <span className="text-sm text-slate-300">{property.area} {property.areaUnit}</span>
                 </div>
               </div>
@@ -587,14 +582,14 @@ function PropertyAnalyticsCard({ property, index, onView, onEdit }: PropertyAnal
                 onClick={onEdit}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-800 hover:border-slate-600/50 hover:text-white transition-all duration-200 text-sm font-medium"
               >
-                <Edit size={14} />
+                <Lucide.Edit size={14} />
                 Edit Property
               </button>
               <button 
                 onClick={onView}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 text-white border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-200 text-sm font-medium"
               >
-                <Eye size={14} />
+                <Lucide.Eye size={14} />
                 View Details
               </button>
             </div>
@@ -723,20 +718,20 @@ export function ViewPropertyModal({
                   </Badge>
                 </div>
                 <DialogDescription className="text-slate-400 text-base flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-purple-400" />
+                  <Lucide.MapPin className="w-4 h-4 text-purple-400" />
                   {property.address || property.location}
                 </DialogDescription>
                 <div className="flex items-center gap-6 text-sm">
                   <div className="flex items-center gap-2 text-slate-400">
-                    <Eye className="w-4 h-4" />
+                    <Lucide.Eye className="w-4 h-4" />
                     <span>{property.views || 0} views</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-400">
-                    <Users className="w-4 h-4" />
+                    <Lucide.Users className="w-4 h-4" />
                     <span>{property.leads || 0} leads</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-400">
-                    <Calendar className="w-4 h-4" />
+                    <Lucide.Calendar className="w-4 h-4" />
                     <span>Built {property.yearBuilt}</span>
                   </div>
                 </div>
@@ -775,13 +770,13 @@ export function ViewPropertyModal({
                     className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-slate-900/90 backdrop-blur-md hover:bg-slate-800 border border-slate-700/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110" 
                     onClick={onPrevImage}
                   >
-                    <ChevronLeft className="w-6 h-6 text-white" />
+                    <Lucide.ChevronLeft className="w-6 h-6 text-white" />
                   </button>
                   <button 
                     className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-slate-900/90 backdrop-blur-md hover:bg-slate-800 border border-slate-700/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110" 
                     onClick={onNextImage}
                   >
-                    <ChevronRight className="w-6 h-6 text-white" />
+                    <Lucide.ChevronRight className="w-6 h-6 text-white" />
                   </button>
                   
                   {/* Image Indicators */}
@@ -807,7 +802,7 @@ export function ViewPropertyModal({
                 {/* Description */}
                 <div className="p-6 bg-slate-900/50 border border-slate-800/50 rounded-2xl">
                   <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                    <Home className="w-5 h-5 text-blue-400" />
+                    <Lucide.Home className="w-5 h-5 text-blue-400" />
                     Property Overview
                   </h3>
                   <p className="text-slate-300 leading-relaxed text-base">
@@ -817,15 +812,15 @@ export function ViewPropertyModal({
 
                 {/* Property Features Grid */}
                 <div className="grid grid-cols-3 gap-4">
-                  <PropertyFeature icon={Bed} value={property.bedrooms} label="Bedrooms" />
-                  <PropertyFeature icon={Bath} value={property.bathrooms} label="Bathrooms" />
-                  <PropertyFeature icon={Maximize2} value={`${property.area} ${property.areaUnit}`} label="Total Area" />
+                  <PropertyFeature icon={Lucide.Bed} value={property.bedrooms} label="Bedrooms" />
+                  <PropertyFeature icon={Lucide.Bath} value={property.bathrooms} label="Bathrooms" />
+                  <PropertyFeature icon={Lucide.Maximize2} value={`${property.area} ${property.areaUnit}`} label="Total Area" />
                 </div>
 
                 {/* Analytics Section */}
                 <div className="p-6 bg-gradient-to-br from-blue-500/5 to-purple-500/5 border border-blue-500/20 rounded-2xl">
                   <h3 className="text-xl font-bold text-white mb-5 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-blue-400" />
+                    <Lucide.TrendingUp className="w-5 h-5 text-blue-400" />
                     Investment Analytics
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -833,25 +828,25 @@ export function ViewPropertyModal({
                       label="Investment Potential" 
                       value={property.analytics?.investmentPotential || 0}
                       color="blue"
-                      icon={Award}
+                      icon={Lucide.Award}
                     />
                     <AnalyticsCard 
                       label="Risk Score" 
                       value={property.analytics?.riskScore || 0}
                       color="orange"
-                      icon={AlertTriangle}
+                      icon={Lucide.AlertTriangle}
                     />
                     <AnalyticsCard 
                       label="Rental Yield" 
                       value={property.analytics?.rentalYield || 0}
                       color="purple"
-                      icon={DollarSign}
+                      icon={Lucide.DollarSign}
                     />
                     <AnalyticsCard 
                       label="Market Demand" 
                       value={property.analytics?.demandScore || 0}
                       color="emerald"
-                      icon={TrendingUp}
+                      icon={Lucide.TrendingUp}
                     />
                   </div>
                 </div>
@@ -864,7 +859,7 @@ export function ViewPropertyModal({
                   <h4 className="text-sm font-semibold text-slate-400 mb-3">Property Type</h4>
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center">
-                      <Home className="w-5 h-5 text-blue-400" />
+                      <Lucide.Home className="w-5 h-5 text-blue-400" />
                     </div>
                     <span className="text-lg font-semibold text-white capitalize">
                       {property.type?.replace('_', ' ')}
@@ -876,7 +871,7 @@ export function ViewPropertyModal({
                 {property.hazards && property.hazards.length > 0 && (
                   <div className="p-6 bg-gradient-to-br from-orange-500/5 to-red-500/5 border border-orange-500/20 rounded-2xl">
                     <h4 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-orange-400" />
+                      <Lucide.Shield className="w-4 h-4 text-orange-400" />
                       Risk Hazards ({property.hazards.length})
                     </h4>
                     <div className="space-y-2">
@@ -910,7 +905,7 @@ export function ViewPropertyModal({
                 {totalAmenities > 0 && (
                   <div className="p-6 bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-500/20 rounded-2xl">
                     <h4 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      <Lucide.Sparkles className="w-4 h-4 text-purple-400" />
                       Amenities & Features
                     </h4>
                     <div className="flex items-center justify-center">
@@ -938,7 +933,7 @@ export function ViewPropertyModal({
                 {/* Location Insights */}
                 <div className="p-6 bg-gradient-to-br from-slate-900/80 to-slate-800/50 border border-slate-700/50 rounded-2xl">
                   <h4 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2">
-                    <Map className="w-4 h-4 text-blue-400" />
+                    <Lucide.Map className="w-4 h-4 text-blue-400" />
                     Location Insights
                   </h4>
                   <div className="space-y-3 text-sm">
@@ -968,7 +963,7 @@ export function ViewPropertyModal({
               onClick={onEdit}
               className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/25"
             >
-              <Edit className="w-4 h-4" />
+              <Lucide.Edit className="w-4 h-4" />
               Edit Property
             </button>
           </div>
@@ -985,7 +980,7 @@ function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 blur-3xl rounded-full" />
         <div className="relative w-24 h-24 bg-gradient-to-br from-slate-800 to-slate-700 border border-slate-600/50 rounded-3xl flex items-center justify-center shadow-2xl">
-          <Home className="w-12 h-12 text-slate-400" />
+          <Lucide.Home className="w-12 h-12 text-slate-400" />
         </div>
       </div>
       <h3 className="text-3xl font-bold text-white mb-3">No Properties Yet</h3>
@@ -996,7 +991,7 @@ function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
         onClick={onCreateClick}
         className="group flex items-center gap-3 px-8 py-4 bg-white hover:bg-slate-100 text-slate-900 rounded-xl font-bold transition-all duration-200 shadow-lg hover:scale-105"
       >
-        <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+        <Lucide.Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
         Add Your First Property
       </button>
     </div>
@@ -1008,7 +1003,7 @@ function NoResultsState() {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4">
       <div className="w-20 h-20 bg-slate-800/50 border border-slate-700/50 rounded-2xl flex items-center justify-center mb-6">
-        <Search className="w-10 h-10 text-slate-500" />
+        <Lucide.Search className="w-10 h-10 text-slate-500" />
       </div>
       <h3 className="text-2xl font-bold text-white mb-2">No Properties Found</h3>
       <p className="text-slate-400 text-center max-w-md">
