@@ -75,10 +75,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // refreshToken is expected to be set as HttpOnly cookie by backend.
       setAuth({ user: data.user, tokens: { accessToken: data.accessToken, refreshToken: data.refreshToken || getCookie('refreshToken') || null } });
       toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Login failed',
-        description: error.response?.data?.message || 'Please check your credentials and try again.',
+        description: error instanceof Error ? error.message : 'Please check your credentials and try again.',
         variant: 'destructive',
       });
       throw error;
@@ -101,10 +101,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // refreshToken is expected to be set as HttpOnly cookie by backend.
       setAuth({ user: response.user, tokens: { accessToken: response.accessToken, refreshToken: response.refreshToken || getCookie('refreshToken') || null } });
       toast({ title: 'Account created!', description: 'Welcome to Virtual Sales Platform.' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Signup failed',
-        description: error.response?.data?.message || 'Please check your information and try again.',
+        description: error instanceof Error ? error.message : 'Please check your information and try again.',
         variant: 'destructive',
       });
       throw error;
@@ -121,10 +121,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       eraseCookie('refreshToken');
       setAuth({ user: null, tokens: null });
       toast({ title: 'Logged out', description: 'You have been successfully logged out.' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Logout failed',
-        description: error.response?.data?.message || 'An error occurred while logging out.',
+        description: error instanceof Error ? error.message : 'An error occurred while logging out.',
         variant: 'destructive',
       });
     } finally {

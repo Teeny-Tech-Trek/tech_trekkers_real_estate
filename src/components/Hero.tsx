@@ -51,8 +51,8 @@ const Hero = () => {
     if (isMobile || !robotInnerRef.current) return;
 
     let animationFrameId: number;
-    let mouseX = 0;
-    let mouseY = 0;
+    let mouseX = 0; // eslint-disable-line prefer-const
+    let mouseY = 0; // eslint-disable-line prefer-const
 
     const handleMouseMove = (e: MouseEvent) => {
       // Cancel previous frame if exists

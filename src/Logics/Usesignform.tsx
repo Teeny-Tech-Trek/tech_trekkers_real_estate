@@ -59,13 +59,25 @@ export const useSignupForm = () => {
     }
   ];
 
+interface SignupPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+  accountType: string;
+  company?: string;
+}
+
+// ...
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null); // Clear previous errors
     try {
       // Assuming the signup API might expect 'company' instead of 'companyName'
-      const payload: any = {
+      const payload: SignupPayload = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -81,9 +93,13 @@ export const useSignupForm = () => {
       const { user } = await signup(payload);
       console.log('Signup successful:', user);
       navigate('/login'); // Redirect to login on success
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Signup error:', err);
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Signup failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

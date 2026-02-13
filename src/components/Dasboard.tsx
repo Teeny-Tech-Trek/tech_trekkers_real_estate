@@ -62,7 +62,7 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] -m-4 lg:-m-6 p-4 lg:p-6">
+    <div className="min-h-screen   bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] p-10 ">
       <div className="max-w-[1920px] mx-auto">
         {/* Welcome Header */}
         <div className="mb-8">

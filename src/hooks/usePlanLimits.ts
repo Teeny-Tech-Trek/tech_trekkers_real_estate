@@ -1,7 +1,6 @@
 // src/hooks/usePlanLimits.ts
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { getBillingInfo, BillingInfo } from '@/services/settingsApi';
 
 export interface PlanLimits {
   canCreateAgent: boolean;
@@ -34,58 +33,40 @@ export interface PlanLimits {
 
 export const usePlanLimits = (): PlanLimits => {
   const { toast } = useToast();
-  const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading] = useState(false);
 
-  const loadBillingInfo = async () => {
-    try {
-      setIsLoading(true);
-      const data = await getBillingInfo();
-      setBillingInfo(data);
-    } catch (error) {
-      console.error('Failed to load billing info:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load plan limits",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadBillingInfo();
-  }, []);
-
-  // Calculate limits based on billing info
+  // Return default unlimited limits
   const agents = {
-    used: billingInfo?.usage.agents.used || 0,
-    limit: billingInfo?.usage.agents.limit || 1,
-    remaining: Math.max(0, (billingInfo?.usage.agents.limit || 1) - (billingInfo?.usage.agents.used || 0))
+    used: 0,
+    limit: Infinity,
+    remaining: Infinity
   };
 
   const properties = {
-    used: billingInfo?.usage.properties.used || 0,
-    limit: billingInfo?.usage.properties.limit || 5,
-    remaining: Math.max(0, (billingInfo?.usage.properties.limit || 5) - (billingInfo?.usage.properties.used || 0))
+    used: 0,
+    limit: Infinity,
+    remaining: Infinity
   };
 
   const teamMembers = {
-    used: billingInfo?.usage.members.used || 0,
-    limit: billingInfo?.usage.members.limit || 1,
-    remaining: Math.max(0, (billingInfo?.usage.members.limit || 1) - (billingInfo?.usage.members.used || 0))
+    used: 0,
+    limit: Infinity,
+    remaining: Infinity
   };
 
   const isAtLimit = {
-    agents: agents.remaining <= 0,
-    properties: properties.remaining <= 0,
-    teamMembers: teamMembers.remaining <= 0
+    agents: false,
+    properties: false,
+    teamMembers: false
   };
 
-  const canCreateAgent = !isAtLimit.agents;
-  const canCreateProperty = !isAtLimit.properties;
-  const canAddTeamMember = !isAtLimit.teamMembers;
+  const canCreateAgent = true;
+  const canCreateProperty = true;
+  const canAddTeamMember = true;
+
+  const loadBillingInfo = async () => {
+    // No-op: function disabled
+  };
 
   return {
     canCreateAgent,
@@ -95,7 +76,7 @@ export const usePlanLimits = (): PlanLimits => {
     properties,
     teamMembers,
     isAtLimit,
-    planName: billingInfo?.plan.name || 'free',
+    planName: 'unlimited',
     isLoading,
     refreshLimits: loadBillingInfo
   };

@@ -3,7 +3,8 @@
 
 @font-face {
   font-family: "Brockmann";
-  src: url("/brockmann-medium-webfont.ttf") format("truetype"),
+  src:
+    url("/brockmann-medium-webfont.ttf") format("truetype"),
     url("/brockmann-medium.otf") format("opentype");
   font-weight: 500;
   font-style: normal;
@@ -66,13 +67,14 @@
     );
 
     /* Apple-like Shadows - Using only defined shadows */
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-sm:
+      0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md:
+      0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 
     /* Premium Transitions */
@@ -141,7 +143,9 @@
   body {
     @apply bg-white text-gray-900 font-sans antialiased;
     @apply font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -292,6 +296,17 @@
     @apply glass-card p-8 text-center cursor-pointer;
   }
 
+  /* Dark glass modal optimized for deep blue overlays */
+  .glass-modal {
+    background: rgba(6, 10, 25, 0.62);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    backdrop-filter: blur(10px) saturate(120%);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+    @apply rounded-xl transition-all duration-300;
+    color: #e6eef8;
+  }
+
   .feature-icon {
     @apply w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg transition-transform duration-500 group-hover:scale-110;
   }
@@ -398,6 +413,15 @@
   }
   50% {
     opacity: 0.8;
+  }
+
+  /* Utility to hide scrollbars when using custom glass panels */
+  .hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
   }
 }
 

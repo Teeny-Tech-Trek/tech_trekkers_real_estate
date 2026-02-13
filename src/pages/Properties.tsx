@@ -1,1408 +1,805 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Search, Filter, MapPin, Bed, Bath, Square,
-  TrendingUp, AlertTriangle, Users, School, ShoppingCart,
-  Train, Sun, Droplets, Wifi, Car, Eye, Edit,
-  Star, Heart, Share2, Download, BarChart3, Target,
-  Clock, DollarSign, Home, Building, Crown, Trash2,
-  Save, X, Upload, Calendar, Phone, Mail, User,
-  ArrowLeft, ArrowRight, ZoomIn, ZoomOut
+  Search, Plus, Home, TrendingUp, AlertTriangle, Eye, Edit, Trash2, Heart, MapPin, 
+  ChevronLeft, ChevronRight, Bed, Bath, Maximize2, Filter, BarChart3, MoreVertical,
+  Download, Share2, Copy, Settings, X, RefreshCw, Sparkles, Zap, ArrowUpRight
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import axios from "axios";
-import propertiesApi, {
-  fetchProperties as fetchPropertiesApi,
-  createProperty,
-  updateProperty,
-  toggleFavoriteProperty,
-  deleteProperty
-} from "@/services/propertiesApi";
+import PropertyFormModal from "@/components/PropertyFormModal";
+import { usePropertiesLogic } from "@/Logics/UsePropertiesLogic";
 import { Property } from "@/types/property";
 
-// Default property structure for initialization
-const defaultProperty = {
-  title: "",
-  price: "",
-  location: "",
-  address: "",
-  bedrooms: "",
-  bathrooms: "",
-  area: "",
-  areaUnit: "sq ft",
-  status: "available",
-  type: "single_family",
-  yearBuilt: new Date().getFullYear(),
-  images: [],
-  description: "",
-  leads: 0,
-  views: 0,
-  favorite: false,
-  createdAt: new Date().toISOString().split("T")[0],
-  analytics: {
-    riskScore: 0,
-    investmentPotential: 0,
-    rentalYield: 0,
-    appreciation: 0,
-    demandScore: 0,
-    marketValue: 0,
-    pricePerSqFt: 0
-  },
-  hazards: [],
-  demographics: {
-    averageAge: 0,
-    averageIncome: "",
-    familyRatio: 0,
-    education: "",
-    populationDensity: "medium"
-  },
-  amenities: {
-    transit: [],
-    education: [],
-    shopping: [],
-    parks: [],
-    healthcare: [],
-    other: []
-  },
-  marketInsights: {
-    daysOnMarket: 0,
-    pricePerSqFt: 0,
-    comparableSales: 0,
-    marketTrend: "stable",
-    avgDaysOnMarket: 0
-  },
-  financials: {
-    monthlyRent: 0,
-    propertyTax: 0,
-    insurance: 0,
-    maintenance: 0,
-    hoa: 0
-  },
-  ownerInfo: {
-    name: "",
-    email: "",
-    phone: "",
-    since: new Date().toISOString().split("T")[0]
-  }
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };
 
-const Properties = () => {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState("add");
-  const [isViewPropertyOpen, setIsViewPropertyOpen] = useState(false);
-  const [view, setView] = useState("grid");
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+const itemVariants = {
+  hidden: { y: 15, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0.4, ease: "easeOut" } },
+};
 
+const Properties: React.FC = () => {
+  const {
+    properties,
+    selectedProperty,
+    isModalOpen,
+    modalMode,
+    isViewPropertyOpen,
+    view,
+    currentImageIndex,
+    isLoading,
+    error,
+    setIsViewPropertyOpen,
+    setView,
+    setCurrentImageIndex,
+    setIsModalOpen,
+    toggleFavorite,
+    handleViewProperty,
+    openAddModal,
+    openEditModal,
+    handleSaveProperty,
+    handleDeleteProperty,
+    nextImage,
+    prevImage,
+    getRiskColor,
+    getHazardColor,
+  } = usePropertiesLogic();
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'available' | 'sold'>('all');
+  const [showMenuFor, setShowMenuFor] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchProperties();
-  }, []);
+  const maxProperties = 50;
+  const totalProperties = properties.length;
+  const availableProperties = properties.filter(p => p.status === 'available').length;
+  const totalLeads = properties.reduce((sum, p) => sum + (p.leads || 0), 0);
+  const avgInvestmentScore = properties.length 
+    ? Math.round(properties.reduce((s, p) => s + (p.analytics?.investmentPotential || 0), 0) / properties.length)
+    : 0;
 
-  const fetchProperties = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await fetchPropertiesApi();
-      console.log
-      setProperties(data);
-    } catch (err: any) {
-      console.error("Fetch Properties Error:", err);
-      setError(err.message || "Failed to load properties");
-      setProperties([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const toggleFavorite = async (id: string) => {
-    try {
-      const updatedProperty = await toggleFavoriteProperty(id);
-      setProperties((props) =>
-        props.map((p) => (p._id === id ? updatedProperty : p))
-      );
-    } catch (err: any) {
-      console.error("Toggle Favorite Error:", err);
-      setError(err.message);
-    }
-  };
-
-
-
-  const handleViewProperty = (property) => {
-    setSelectedProperty(property);
-    setCurrentImageIndex(0);
-    setIsViewPropertyOpen(true);
-  };
-
-  const openAddModal = () => {
-    setModalMode("add");
-    setSelectedProperty(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (property) => {
-    setModalMode("edit");
-    setSelectedProperty(property);
-    setIsModalOpen(true);
-  };
-
-  const handleSaveProperty = async (propertyData: Property, files: File[], deletedImages: string[]) => {
-    const formData = new FormData();
-
-    // ✅ Stringify the main object, make sure hazards is an array of objects
-    const dataToSend = { ...propertyData, hazards: propertyData.hazards || [] };
-    formData.append("data", JSON.stringify(dataToSend));
-
-    // Deleted images
-    formData.append("deletedImages", JSON.stringify(deletedImages));
-
-    // Append files
-    files.forEach((file) => formData.append("images", file));
-
-    try {
-      if (modalMode === "add") {
-        await createProperty(formData);
-      } else if (selectedProperty) {
-        await updateProperty(selectedProperty._id, formData);
-      }
-      await fetchProperties();
-      setIsModalOpen(false);
-    } catch (err: any) {
-      console.error("Save Property Error:", err);
-      setError(err.response?.data?.error || err.message);
-    }
-  };
-
-
-
-  const handleDeleteProperty = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this property?")) return;
-
-    try {
-      await deleteProperty(id);
-      await fetchProperties();
-    } catch (err: any) {
-      console.error("Delete Property Error:", err);
-      setError(err.message);
-    }
-  };
-
-
-
-  const nextImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === selectedProperty.images.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === 0 ? selectedProperty.images.length - 1 : prev - 1
-    );
-  };
-
-  const getRiskColor = (score) => {
-    if (score <= 20) return "text-green-600 bg-green-100 border-green-200";
-    if (score <= 40) return "text-yellow-600 bg-yellow-100 border-yellow-200";
-    return "text-red-600 bg-red-100 border-red-200";
-  };
-
-  const getHazardColor = (level) => {
-    switch (level) {
-      case "very_low":
-        return "bg-green-500 text-white";
-      case "low":
-        return "bg-blue-500 text-white";
-      case "medium":
-        return "bg-yellow-500 text-white";
-      case "high":
-        return "bg-orange-500 text-white";
-      case "very_high":
-        return "bg-red-500 text-white";
-      default:
-        return "bg-gray-500 text-white";
-    }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-      },
-    },
-  };
+  const filteredProperties = properties.filter(property => {
+    const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         property.location.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = filterStatus === 'all' || property.status === filterStatus;
+    return matchesSearch && matchesFilter;
+  });
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
-        <div>Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+          <div className="text-slate-300 text-lg">Loading properties...</div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
-        <div className="text-red-600">Error: {error}</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628]">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 max-w-md">
+          <div className="flex items-center gap-3 mb-3">
+            <AlertTriangle className="text-red-400" size={28} />
+            <h3 className="text-red-400 font-semibold text-xl">Error</h3>
+          </div>
+          <p className="text-slate-300">{String(error)}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
-      {/* Header */}
-      <motion.header
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10"
-      >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-4 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-600 bg-clip-text text-transparent">
-              Property Portfolio
-            </h1>
-            <p className="text-slate-600 mt-1">Manage listings with advanced analytics & risk assessment</p>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] p-10">
+      {/* Subtle Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-40">
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative max-w-[1400px] mx-auto px-6 lg:px-8 py-8 lg:py-12">
+        {/* Enhanced Header Section */}
+        <div className="mb-12">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-12">
+            <div className="space-y-3">
+              <h1 className="text-5xl font-bold text-white tracking-tight">
+                Property Portfolio
+              </h1>
+              <p className="text-base text-slate-400">Manage and analyze your real estate listings</p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Plan Usage - Minimalist */}
+              <div className="flex items-center gap-4 px-5 py-3 bg-slate-900/40 border  border-slate-500 rounded-full backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-cyan-400 rounded-full" />
+                  <div className="text-sm">
+                    <span className="text-white font-bold">{totalProperties}</span>
+                    <span className="text-slate-500 mx-1.5">/</span>
+                    <span className="text-slate-500">{maxProperties}</span>
+                  </div>
+                </div>
+                <span className="text-xs text-slate-200 font-medium">Properties Listed</span>
+              </div>
+
+              {/* Action Buttons */}
+              <button className="p-3 bg-slate-900/40 border border-slate-800/50 rounded-full hover:bg-slate-800/50 hover:border-slate-700/50 transition-all duration-200 backdrop-blur-sm group">
+                <RefreshCw className="w-4 h-4 text-slate-400 group-hover:text-slate-300 group-hover:rotate-180 transition-all duration-500" />
+              </button>
+
+              <button
+                onClick={() => setView(view === "grid" ? "analytics" : "grid")}
+                className="p-3 bg-slate-900/40 border border-slate-800/50 rounded-full hover:bg-slate-800/50 hover:border-slate-700/50 transition-all duration-200 backdrop-blur-sm group"
+              >
+                <BarChart3 className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-colors" />
+              </button>
+
+              <button
+                onClick={openAddModal}
+                disabled={totalProperties >= maxProperties}
+                className="group flex items-center gap-2.5 px-6 py-3 bg-white hover:bg-slate-100 disabled:bg-slate-800 disabled:text-slate-500 text-slate-900 rounded-full font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100 disabled:border disabled:border-slate-700"
+              >
+                <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+                Add Property
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 border-slate-300"
-              onClick={() => setView(view === "grid" ? "analytics" : "grid")}
+
+          {/* Enhanced KPI Stats - Organic Layout */}
+          <div className="relative mb-8">
+            <div className="flex items-center justify-between gap-8 px-4">
+              {/* Stat 1 */}
+              <div className="flex-1">
+                <div className="flex items-baseline gap-3 mb-1.5">
+                  <span className="text-5xl font-bold text-white tracking-tight">{totalProperties}</span>
+                  <span className="text-emerald-400 text-sm font-semibold flex items-center gap-1">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    +12%
+                  </span>
+                </div>
+                <div className="text-slate-400 font-medium">Total Properties</div>
+                <div className="text-slate-600 text-sm mt-0.5">{maxProperties - totalProperties} slots available</div>
+              </div>
+
+              {/* Divider */}
+              <div className="w-px h-16 bg-gradient-to-b from-transparent via-slate-700/30 to-transparent" />
+
+              {/* Stat 2 */}
+              <div className="flex-1">
+                <div className="flex items-baseline gap-3 mb-1.5">
+                  <span className="text-5xl font-bold text-white tracking-tight">{availableProperties}</span>
+                </div>
+                <div className="text-slate-400 font-medium">Available</div>
+                <div className="text-slate-600 text-sm mt-0.5">{totalProperties - availableProperties} sold</div>
+              </div>
+
+              {/* Divider */}
+              <div className="w-px h-16 bg-gradient-to-b from-transparent via-slate-700/30 to-transparent" />
+
+              {/* Stat 3 */}
+              <div className="flex-1">
+                <div className="flex items-baseline gap-3 mb-1.5">
+                  <span className="text-5xl font-bold text-white tracking-tight">{totalLeads}</span>
+                  <span className="text-emerald-400 text-sm font-semibold flex items-center gap-1">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    +24%
+                  </span>
+                </div>
+                <div className="text-slate-400 font-medium">Active Leads</div>
+                <div className="text-slate-600 text-sm mt-0.5">Last 30 days</div>
+              </div>
+
+              {/* Divider */}
+              <div className="w-px h-16 bg-gradient-to-b from-transparent via-slate-700/30 to-transparent" />
+
+              {/* Stat 4 */}
+              <div className="flex-1">
+                <div className="flex items-baseline gap-3 mb-1.5">
+                  <span className="text-5xl font-bold text-white tracking-tight">{avgInvestmentScore}%</span>
+                  <span className="text-emerald-400 text-sm font-semibold flex items-center gap-1">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    +8%
+                  </span>
+                </div>
+                <div className="text-slate-400 font-medium">Investment Score</div>
+                <div className="text-slate-600 text-sm mt-0.5">Average potential</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Search and Filter Bar - Minimal */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search properties..."
+                className="w-full pl-11 pr-4 py-3.5 bg-slate-900/30 border  border-slate-500 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:bg-slate-900/50 focus:border-slate-700/50 transition-all"
+              />
+            </div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as 'all' | 'available' | 'sold')}
+              className="px-4 py-3.5 bg-slate-900/30 border border-slate-800/50 rounded-xl text-slate-300 text-sm hover:bg-slate-900/50 hover:border-slate-700/50 transition-all focus:outline-none focus:bg-slate-900/50 focus:border-slate-700/50 appearance-none cursor-pointer"
             >
-              <BarChart3 size={16} />
-              {view === "grid" ? "Analytics View" : "Grid View"}
-            </Button>
-            <Button
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/25"
-              onClick={openAddModal}
-            >
-              <Plus size={16} />
-              Add Property
-            </Button>
+              <option value="all">All Status</option>
+              <option value="available">Available</option>
+              <option value="sold">Sold</option>
+            </select>
           </div>
         </div>
-      </motion.header>
 
-      <div className="p-6 max-w-7xl mx-auto">
-        {/* Stats Overview */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
-        >
-          <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Total Properties</p>
-                  <p className="text-2xl font-bold text-slate-900">{properties.length}</p>
-                </div>
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Home className="text-blue-600" size={20} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Active Leads</p>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {properties.reduce((sum, prop) => sum + prop.leads, 0)}
-                  </p>
-                </div>
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="text-green-600" size={20} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Avg Risk Score</p>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {properties.length > 0
-                      ? Math.round(
-                        properties.reduce((sum, prop) => sum + prop.analytics.riskScore, 0) /
-                        properties.length
-                      )
-                      : 0}
-                  </p>
-                </div>
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="text-red-600" size={20} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/60 backdrop-blur-sm border-slate-200/60">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Investment Potential</p>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {properties.length > 0
-                      ? Math.round(
-                        properties.reduce(
-                          (sum, prop) => sum + prop.analytics.investmentPotential,
-                          0
-                        ) / properties.length
-                      )
-                      : 0}
-                    %
-                  </p>
-                </div>
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Target className="text-purple-600" size={20} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Search and Filters */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex flex-col sm:flex-row gap-4 mb-6"
-        >
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
-            <Input
-              placeholder="Search properties by location, features, or risk factors..."
-              className="pl-10 border-slate-300 bg-white/80"
-            />
-          </div>
-          <Button variant="outline" className="flex items-center gap-2 border-slate-300 bg-white/80">
-            <Filter size={16} />
-            Advanced Filters
-          </Button>
-        </motion.div>
-
-        {/* Properties Grid */}
+        {/* Properties Grid/Analytics View */}
         <AnimatePresence mode="wait">
           {view === "grid" ? (
-            <motion.div
-              key="grid"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {properties.map((property) => (
-                <motion.div
-                  key={property.id}
-
-                  layoutId={`property-${property.id}`}
-                >
-                  <Card className="overflow-hidden bg-white/80 backdrop-blur-sm border-slate-200/60 hover:shadow-xl transition-all duration-300 group">
-                    <div className="relative">
-                    <div className="relative h-48">
-                      <img
-                        src={
-                          property.images && property.images[0]
-                            ? property.images[0]
-                            : "/placeholder.svg"
-                        }
-                        alt={property.title}
-                        className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                        decoding="async"
-                        onError={(e) => {
-                          console.error("Image load error:", e.currentTarget.src);
-                          e.currentTarget.src = "/placeholder.svg";
-                        }}
-                      />
-                    </div>
-
-                      <div className="absolute top-3 left-3 flex gap-2">
-                        <Badge
-                          className={`${property.status === "available" ? "bg-green-500" : "bg-yellow-500"
-                            } text-white`}
-                        >
-                          {property.status}
-                        </Badge>
-                        <Badge className={getRiskColor(property.analytics.riskScore)}>
-                          Risk: {property.analytics.riskScore}%
-                        </Badge>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute top-3 right-3 bg-white/90 hover:bg-white"
-                        onClick={() => toggleFavorite(property._id)}
-                      >
-                        <Heart
-                          size={16}
-                          className={property.favorite ? "fill-red-500 text-red-500" : "text-slate-600"}
-                        />
-                      </Button>
-                    </div>
-
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg line-clamp-1 text-slate-800">
-                            {property.title}
-                          </CardTitle>
-                          <CardDescription className="flex items-center mt-1">
-                            <MapPin size={14} className="mr-1" />
-                            <span className="truncate">{property.location}</span>
-                          </CardDescription>
-                        </div>
-                        <span className="text-xl font-bold text-green-600 ml-2">₹ {property.price}</span>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="pt-0">
-                      <div className="flex items-center justify-between text-sm text-slate-600 mb-4">
-                        <div className="flex items-center">
-                          <Bed size={14} className="mr-1" />
-                          {property.bedrooms} bed
-                        </div>
-                        <div className="flex items-center">
-                          <Bath size={14} className="mr-1" />
-                          {property.bathrooms} bath
-                        </div>
-                        <div className="flex items-center">
-                          <Square size={14} className="mr-1" />
-                          {property.area} {property.areaUnit}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-xs">
-                          <span className="text-slate-600">Investment Potential</span>
-                          <span className="font-medium">{property.analytics.investmentPotential}%</span>
-                        </div>
-                        <Progress value={property.analytics.investmentPotential} className="h-2" />
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2 text-xs mb-4">
-                        <div className="text-center p-2 bg-slate-50 rounded-lg">
-                          <div className="font-semibold text-slate-800">{property.leads}</div>
-                          <div className="text-slate-500">Leads</div>
-                        </div>
-                        <div className="text-center p-2 bg-slate-50 rounded-lg">
-                          <div className="font-semibold text-slate-800">{property.views}</div>
-                          <div className="text-slate-500">Views</div>
-                        </div>
-                        <div className="text-center p-2 bg-slate-50 rounded-lg">
-                          <div className="font-semibold text-blue-600">{property.analytics.rentalYield}%</div>
-                          <div className="text-slate-500">Yield</div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 border-slate-300"
-                          onClick={() => openEditModal(property)}
-                        >
-                          <Edit size={14} className="mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="flex-1 bg-blue-600 hover:bg-blue-700"
-                          onClick={() => handleViewProperty(property)}
-                        >
-                          <Eye size={14} className="mr-1" />
-                          Details
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
+            filteredProperties.length === 0 ? (
+              searchQuery || filterStatus !== 'all' ? (
+                <NoResultsState />
+              ) : (
+                <EmptyState onCreateClick={openAddModal} />
+              )
+            ) : (
+              <motion.div 
+                key="grid"
+                variants={containerVariants} 
+                initial="hidden" 
+                animate="visible" 
+                exit={{ opacity: 0 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {filteredProperties.map((property, index) => (
+                  <motion.div key={property._id} variants={itemVariants}>
+                    <PropertyCard 
+                      property={property}
+                      onToggleFavorite={() => toggleFavorite(property._id)}
+                      onView={() => handleViewProperty(property)}
+                      onEdit={() => openEditModal(property)}
+                      onDelete={() => handleDeleteProperty(property._id)}
+                      showMenu={showMenuFor === property._id}
+                      onToggleMenu={() => setShowMenuFor(showMenuFor === property._id ? null : property._id)}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
+            )
           ) : (
-            <motion.div
-              key="analytics"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-6"
+            <motion.div 
+              key="analytics" 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="space-y-5"
             >
-              {properties.map((property) => (
-                <motion.div
-                  key={property.id}
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                >
-                  <Card className="bg-white/80 backdrop-blur-sm border-slate-200/60">
-                    <CardContent className="p-6">
-                      <div className="flex flex-col lg:flex-row gap-6">
-                        <div className="lg:w-1/3">
-                          <div className="relative h-48">
-                                                                                                 <img
-                                                                                                   src={
-                                                                                                     property.images && property.images[0]
-                                                                                                       ? property.images[0]
-                                                                                                       : "/placeholder.svg"
-                                                                                                   }
-                                                                                                   alt={property.title}
-                                                                                                   className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-300"
-                                                                                                   loading="lazy"
-                                                                                                   decoding="async"
-                                                                                                   onError={(e) => {
-                                                                                                     console.error("Image load error:", e.currentTarget.src);
-                                                                                                     e.currentTarget.src = "/placeholder.svg";
-                                                                                                   }}
-                                                                                                 />                          </div>
-                        </div>
-
-                        <div className="lg:w-2/3 space-y-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="text-xl font-bold text-slate-800">{property.title}</h3>
-                              <p className="text-slate-600 flex items-center">
-                                <MapPin size={14} className="mr-1" />
-                                {property.location}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-2xl font-bold text-green-600">{property.price}</div>
-                              <Badge className={getRiskColor(property.analytics.riskScore)}>
-                                Risk Score: {property.analytics.riskScore}%
-                              </Badge>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="text-center p-3 bg-blue-50 rounded-lg">
-                              <Target className="h-6 w-6 text-blue-600 mx-auto mb-1" />
-                              <div className="font-bold text-slate-800">
-                                {property.analytics.investmentPotential}%
-                              </div>
-                              <div className="text-xs text-slate-600">Potential</div>
-                            </div>
-                            <div className="text-center p-3 bg-green-50 rounded-lg">
-                              <TrendingUp className="h-6 w-6 text-green-600 mx-auto mb-1" />
-                              <div className="font-bold text-slate-800">{property.analytics.appreciation}%</div>
-                              <div className="text-xs text-slate-600">Appreciation</div>
-                            </div>
-                            <div className="text-center p-3 bg-purple-50 rounded-lg">
-                              <DollarSign className="h-6 w-6 text-purple-600 mx-auto mb-1" />
-                              <div className="font-bold text-slate-800">{property.analytics.rentalYield}%</div>
-                              <div className="text-xs text-slate-600">Rental Yield</div>
-                            </div>
-                            <div className="text-center p-3 bg-orange-50 rounded-lg">
-                              <Users className="h-6 w-6 text-orange-600 mx-auto mb-1" />
-                              <div className="font-bold text-slate-800">{property.analytics.demandScore}%</div>
-                              <div className="text-xs text-slate-600">Demand</div>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <h4 className="font-semibold text-slate-800 mb-2 flex items-center">
-                                <AlertTriangle size={16} className="mr-1" />
-                                Risk Hazards
-                              </h4>
-                              <div className="space-y-2">
-                                {property.hazards.map((hazard, index) => (
-                                  <div key={index} className="flex items-center justify-between text-sm">
-                                    <span className="capitalize">{hazard.type}</span>
-                                    <Badge className={getHazardColor(hazard.level)}>
-                                      {hazard.level.replace("_", " ")}
-                                    </Badge>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-slate-800 mb-2 flex items-center">
-                                <Building size={16} className="mr-1" />
-                                Nearby Amenities
-                              </h4>
-                              <div className="flex flex-wrap gap-2">
-                                {Object.entries(property.amenities)
-                                  .flatMap(([, items]) => items)
-                                  .map((item, index) => (
-                                    <Badge key={index} variant="outline" className="bg-white">
-                                      {item.replace("_", " ")}
-                                    </Badge>
-                                  ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex gap-2 pt-4">
-                            <Button
-                              size="sm"
-                              onClick={() => handleViewProperty(property)}
-                            >
-                              <Eye size={14} className="mr-1" />
-                              View Details
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openEditModal(property)}
-                            >
-                              <Edit size={14} className="mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700"
-                              onClick={() => handleDeleteProperty(property.id)}
-                            >
-                              <Trash2 size={14} className="mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+              {filteredProperties.map((property, index) => (
+                <PropertyAnalyticsCard 
+                  key={property._id}
+                  property={property}
+                  index={index}
+                  onView={() => handleViewProperty(property)}
+                  onEdit={() => openEditModal(property)}
+                />
               ))}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Unified Add/Edit Modal */}
-      <PropertyFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        mode={modalMode}
-        initialData={selectedProperty}
-        onSave={handleSaveProperty}
+      {/* Modals */}
+      <PropertyFormModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        mode={modalMode} 
+        initialData={selectedProperty} 
+        onSave={handleSaveProperty} 
       />
 
       {/* View Property Modal */}
-      <Dialog open={isViewPropertyOpen} onOpenChange={setIsViewPropertyOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white">
-          {selectedProperty && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-slate-800">
-                  {selectedProperty.title}
-                </DialogTitle>
-                <DialogDescription className="text-slate-600">
-                  {selectedProperty.address}
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-6">
-                <div className="relative w-full h-64 md:h-96">
-                                     <img
-                                       src={
-                                         selectedProperty.images && selectedProperty.images[currentImageIndex]
-                                           ? selectedProperty.images[currentImageIndex]
-                                           : "/placeholder.svg"
-                                       }
-                                       alt={selectedProperty.title}
-                                       className="w-full h-full object-cover rounded-lg"
-                                       loading="lazy"
-                                       decoding="async"
-                                       onError={(e) => {
-                                                                       console.error("Image load error:", e.currentTarget.src);
-                                                                       e.currentTarget.src = "/placeholder.svg";                    }}
-                                     />
-                  {selectedProperty.images.length > 1 && (
-                    <>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2"
-                        onClick={prevImage}
-                      >
-                        <ArrowLeft size={16} />
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                        onClick={nextImage}
-                      >
-                        <ArrowRight size={16} />
-                      </Button>
-                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                        {selectedProperty.images.map((_, index) => (
-                          <button
-                            key={index}
-                            className={`w-2 h-2 rounded-full ${index === currentImageIndex ? "bg-white" : "bg-white/50"
-                              }`}
-                            onClick={() => setCurrentImageIndex(index)}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <Tabs defaultValue="overview" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 bg-slate-100 p-1 rounded-lg">
-                    <TabsTrigger value="overview" className="rounded-md">Overview</TabsTrigger>
-                    <TabsTrigger value="analytics" className="rounded-md">Analytics</TabsTrigger>
-                    <TabsTrigger value="financials" className="rounded-md">Financials</TabsTrigger>
-                    <TabsTrigger value="owner" className="rounded-md">Owner Info</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="overview" className="space-y-4 mt-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <Bed className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-                          <div className="font-bold text-slate-800">{selectedProperty.bedrooms}</div>
-                          <div className="text-sm text-slate-600">Bedrooms</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <Bath className="h-6 w-6 text-green-600 mx-auto mb-2" />
-                          <div className="font-bold text-slate-800">{selectedProperty.bathrooms}</div>
-                          <div className="text-sm text-slate-600">Bathrooms</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <Square className="h-6 w-6 text-purple-600 mx-auto mb-2" />
-                          <div className="font-bold text-slate-800">{selectedProperty.area}</div>
-                          <div className="text-sm text-slate-600">{selectedProperty.areaUnit}</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <Calendar className="h-6 w-6 text-orange-600 mx-auto mb-2" />
-                          <div className="font-bold text-slate-800">{selectedProperty.yearBuilt}</div>
-                          <div className="text-sm text-slate-600">Year Built</div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Description</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-slate-600">{selectedProperty.description}</p>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="analytics" className="space-y-4 mt-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <Target className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-                          <div className="font-bold text-slate-800">
-                            {selectedProperty.analytics.investmentPotential}%
-                          </div>
-                          <div className="text-sm text-slate-600">Investment Potential</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <AlertTriangle className="h-6 w-6 text-red-600 mx-auto mb-2" />
-                          <div className="font-bold text-slate-800">{selectedProperty.analytics.riskScore}%</div>
-                          <div className="text-sm text-slate-600">Risk Score</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <DollarSign className="h-6 w-6 text-green-600 mx-auto mb-2" />
-                          <div className="font-bold text-slate-800">{selectedProperty.analytics.rentalYield}%</div>
-                          <div className="text-sm text-slate-600">Rental Yield</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <TrendingUp className="h-6 w-6 text-purple-600 mx-auto mb-2" />
-                          <div className="font-bold text-slate-800">{selectedProperty.analytics.appreciation}%</div>
-                          <div className="text-sm text-slate-600">Appreciation</div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="financials" className="space-y-4 mt-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="text-sm text-slate-600">Monthly Rent</div>
-                          <div className="font-bold text-slate-800">${selectedProperty.financials.monthlyRent}</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="text-sm text-slate-600">Property Tax</div>
-                          <div className="font-bold text-slate-800">${selectedProperty.financials.propertyTax}/mo</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="text-sm text-slate-600">Insurance</div>
-                          <div className="font-bold text-slate-800">${selectedProperty.financials.insurance}/mo</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="text-sm text-slate-600">Maintenance</div>
-                          <div className="font-bold text-slate-800">${selectedProperty.financials.maintenance}/mo</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="text-sm text-slate-600">HOA</div>
-                          <div className="font-bold text-slate-800">${selectedProperty.financials.hoa}/mo</div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="owner" className="space-y-4 mt-4">
-                    <Card>
-                      <CardContent className="p-6">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-600">Name</span>
-                            <span className="font-medium">{selectedProperty.ownerInfo.name}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-600">Email</span>
-                            <span className="font-medium">{selectedProperty.ownerInfo.email}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-600">Phone</span>
-                            <span className="font-medium">{selectedProperty.ownerInfo.phone}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-600">Owner Since</span>
-                            <span className="font-medium">{selectedProperty.ownerInfo.since}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsViewPropertyOpen(false)}>
-                  Close
-                </Button>
-                <Button
-                  onClick={() => {
-                    setIsViewPropertyOpen(false);
-                    openEditModal(selectedProperty);
-                  }}
-                >
-                  <Edit size={16} className="mr-2" />
-                  Edit Property
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      {showMenuFor && <div className="fixed inset-0 z-10" onClick={() => setShowMenuFor(null)} />}
+      
+      <ViewPropertyModal 
+        isOpen={isViewPropertyOpen}
+        property={selectedProperty}
+        currentImageIndex={currentImageIndex}
+        onClose={() => setIsViewPropertyOpen(false)}
+        onEdit={() => { 
+          setIsViewPropertyOpen(false); 
+          openEditModal(selectedProperty!); 
+        }}
+        onNextImage={nextImage}
+        onPrevImage={prevImage}
+      />
     </div>
   );
 };
 
-const PropertyFormModal = ({ isOpen, onClose, mode, initialData, onSave }) => {
-  const [propertyData, setPropertyData] = useState(defaultProperty);
-  const [files, setFiles] = useState([]);
-  const [previews, setPreviews] = useState([]);
-  const [deletedImages, setDeletedImages] = useState([]);
+// Property Card Component
+interface PropertyCardProps {
+  property: Property;
+  onToggleFavorite: () => void;
+  onView: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  showMenu: boolean;
+  onToggleMenu: () => void;
+}
 
-  useEffect(() => {
-    if (initialData && mode === "edit") {
-      setPropertyData(initialData);
-      setPreviews(initialData.images || []);
-    } else {
-      setPropertyData(defaultProperty);
-      setPreviews([]);
+function PropertyCard({ 
+  property, 
+  onToggleFavorite,
+  onView,
+  onEdit,
+  onDelete,
+  showMenu,
+  onToggleMenu
+}: PropertyCardProps) {
+  const statusConfig = {
+    available: { 
+      label: 'Available', 
+      color: 'text-emerald-400',
+      dot: 'bg-emerald-400'
+    },
+    sold: { 
+      label: 'Sold', 
+      color: 'text-amber-400',
+      dot: 'bg-amber-400'
     }
-    setFiles([]);
-    setDeletedImages([]);
-  }, [initialData, isOpen, mode]);
-
-  const handleChange = (e) => {
-    setPropertyData({ ...propertyData, [e.target.name]: e.target.value });
   };
 
-  const handleNestedChange = (section, key, value) => {
-    setPropertyData({
-      ...propertyData,
-      [section]: { ...propertyData[section], [key]: value },
-    });
-  };
+  const status = statusConfig[property.status as keyof typeof statusConfig] || statusConfig.available;
+  const conversionRate = property.leads > 0 
+    ? Math.round((property.conversions || 0) / property.leads * 100) 
+    : 0;
 
-  const addHazard = () => {
-    setPropertyData({
-      ...propertyData,
-      hazards: [...propertyData.hazards, { type: "flood", level: "low", description: "" }],
-    });
-  };
+  return (
+    <div className="group relative bg-slate-900/30 border  border-slate-500 rounded-2xl overflow-hidden hover:bg-slate-900/50 hover:border-slate-700/50 transition-all duration-300">
+      {/* Image */}
+      <div className="relative h-56 overflow-hidden bg-slate-800">
+        <img 
+          src={property.images?.[0] || "/placeholder.svg"} 
+          alt={property.title} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0"></div>
+        
+        {/* Status Badge */}
+        <div className="absolute top-3 left-3">
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 rounded-lg text-xs font-medium ${status.color}`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+            {status.label}
+          </div>
+        </div>
+        
+        {/* Favorite */}
+        <button 
+          className="absolute top-3 right-3 w-9 h-9 bg-slate-900/80 backdrop-blur-sm hover:bg-slate-800 border border-slate-700/50 rounded-lg flex items-center justify-center transition-colors" 
+          onClick={onToggleFavorite}
+        >
+          <Heart 
+            size={16} 
+            className={property.favorite ? "fill-red-500 text-red-500" : "text-slate-400"} 
+          />
+        </button>
+      </div>
 
-  const removeHazard = (index) => {
-    setPropertyData({
-      ...propertyData,
-      hazards: propertyData.hazards.filter((_, i) => i !== index),
-    });
-  };
+      {/* Content */}
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-white font-semibold text-lg mb-1.5 truncate">
+              {property.title}
+            </h3>
+            <div className="flex items-center text-slate-500 text-sm">
+              <MapPin size={14} className="mr-1.5 flex-shrink-0" />
+              <span className="truncate">{property.location}</span>
+            </div>
+          </div>
+          
+          <div className="relative ml-2 ">
+            <button
+              onClick={onToggleMenu}
+              className="p-1.5 hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+            >
+              <MoreVertical className="w-4 h-4 text-slate-500" />
+            </button>
+            {showMenu && (
+              <div className="absolute right-0 mt-2 w-44 bg-slate-800/95 backdrop-blur-xl border border-slate-200 rounded-xl shadow-2xl z-20 py-1.5 overflow-hidden">
+                <button 
+                  onClick={onView}
+                  className="w-full px-3.5 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 flex items-center gap-2.5 transition-colors"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  View Details
+                </button>
+                <button 
+                  onClick={onEdit}
+                  className="w-full px-3.5 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 flex items-center gap-2.5 transition-colors"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  Edit Property
+                </button>
+                <button className="w-full px-3.5 py-2 text-left text-sm text-slate-300 hover:bg-slate-700/50 flex items-center gap-2.5 transition-colors">
+                  <Share2 className="w-3.5 h-3.5" />
+                  Share
+                </button>
+                <div className="h-px bg-slate-700/50 my-1.5" />
+                <button 
+                  onClick={onDelete}
+                  className="w-full px-3.5 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2.5 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
 
-  const updateHazard = (index, key, value) => {
-    const updatedHazards = [...propertyData.hazards];
-    updatedHazards[index][key] = value;
-    setPropertyData({ ...propertyData, hazards: updatedHazards });
-  };
+        {/* Price */}
+        <div className="mb-5 pb-5 border-b border-slate-800/50">
+          <div className="text-3xl font-bold text-white">
+            ₹{property.price?.toLocaleString()}
+          </div>
+        </div>
 
-  const toggleAmenity = (category, item) => {
-    const updatedAmenities = { ...propertyData.amenities };
-    if (updatedAmenities[category].includes(item)) {
-      updatedAmenities[category] = updatedAmenities[category].filter((i) => i !== item);
-    } else {
-      updatedAmenities[category].push(item);
-    }
-    setPropertyData({ ...propertyData, amenities: updatedAmenities });
-  };
+        {/* Property Details */}
+        <div className="flex items-center justify-between mb-5 pb-5 border-b border-slate-800/50">
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <Bed size={16} className="text-slate-500" />
+            <span className="text-sm font-medium">{property.bedrooms}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <Bath size={16} className="text-slate-500" />
+            <span className="text-sm font-medium">{property.bathrooms}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <Maximize2 size={16} className="text-slate-500" />
+            <span className="text-sm font-medium">{property.area} {property.areaUnit}</span>
+          </div>
+        </div>
 
-  const handleFileChange = (e) => {
-    const newFiles = Array.from(e.target.files);
-    setFiles([...files, ...newFiles]);
-    const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
-    setPreviews([...previews, ...newPreviews]);
-  };
+        {/* Performance Metrics */}
+        <div className="space-y-3.5 mb-6">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-slate-500">Active Leads</span>
+            <span className="text-white font-semibold">{property.leads || 0}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-slate-500">Investment Score</span>
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-emerald-400 rounded-full transition-all duration-500"
+                  style={{ width: `${property.analytics?.investmentPotential || 0}%` }}
+                />
+              </div>
+              <span className="text-emerald-400 text-xs font-semibold w-9 text-right">{property.analytics?.investmentPotential || 0}%</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-slate-500">Risk Level</span>
+            <span className="text-white font-semibold">{property.analytics?.riskScore || 0}%</span>
+          </div>
+        </div>
 
-  const removeImage = (index) => {
-    if (index < propertyData.images.length) {
-      setDeletedImages([...deletedImages, propertyData.images[index]]);
-      setPropertyData({
-        ...propertyData,
-        images: propertyData.images.filter((_, i) => i !== index),
-      });
-    } else {
-      const fileIndex = index - propertyData.images.length;
-      setFiles(files.filter((_, i) => i !== fileIndex));
-    }
-    setPreviews(previews.filter((_, i) => i !== index));
-  };
+        {/* Actions */}
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={onView}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-800 hover:border-slate-600/50 hover:text-white transition-all duration-200 text-sm font-medium"
+          >
+            <Eye className="w-4 h-4" />
+            View
+          </button>
+          <button
+            onClick={onEdit}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 text-white border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-200 text-sm font-medium"
+          >
+            <Edit className="w-4 h-4" />
+            Edit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  const handleSubmit = () => {
-    onSave(propertyData, files, deletedImages);
-  };
+// Property Analytics Card Component
+interface PropertyAnalyticsCardProps {
+  property: Property;
+  index: number;
+  onView: () => void;
+  onEdit: () => void;
+}
 
-  const propertyTypes = [
-    "single_family",
-    "condo",
-    "townhouse",
-    "multi_family",
-    "commercial",
-    "land",
-  ];
+function PropertyAnalyticsCard({ property, index, onView, onEdit }: PropertyAnalyticsCardProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+    >
+      <div className="relative bg-slate-900/30 border border-slate-800/50 rounded-2xl p-6 hover:bg-slate-900/50 hover:border-slate-700/50 transition-all duration-300">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Image */}
+          <div className="relative w-full lg:w-80 h-56 rounded-xl overflow-hidden flex-shrink-0 bg-slate-800">
+            <img 
+              src={property.images?.[0] || "/placeholder.svg"} 
+              alt={property.title} 
+              className="w-full h-full object-cover" 
+            />
+          </div>
+          
+          {/* Details */}
+          <div className="flex-1">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-2">{property.title}</h3>
+                <div className="flex items-center text-slate-400 mb-3">
+                  <MapPin size={16} className="mr-2" />
+                  <span>{property.location}</span>
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                  <Bed size={16} className="text-slate-500" />
+                  <span className="text-sm text-slate-300">{property.bedrooms}</span>
+                  <span className="text-slate-600">•</span>
+                  <Bath size={16} className="text-slate-500" />
+                  <span className="text-sm text-slate-300">{property.bathrooms}</span>
+                  <span className="text-slate-600">•</span>
+                  <Maximize2 size={16} className="text-slate-500" />
+                  <span className="text-sm text-slate-300">{property.area} {property.areaUnit}</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-slate-400 mb-1">Price</div>
+                <div className="text-3xl font-bold text-white">₹{property.price?.toLocaleString()}</div>
+              </div>
+            </div>
 
-  const hazardTypes = ["flood", "earthquake", "fire", "landslide", "hurricane", "tornado"];
+            {/* Analytics Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+              <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl">
+                <div className="text-xs text-slate-400 font-semibold mb-1 uppercase">Investment</div>
+                <div className="text-3xl font-bold text-white">{property.analytics?.investmentPotential || 0}%</div>
+              </div>
+              <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl">
+                <div className="text-xs text-slate-400 font-semibold mb-1 uppercase">Risk</div>
+                <div className="text-3xl font-bold text-white">{property.analytics?.riskScore || 0}%</div>
+              </div>
+              <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl">
+                <div className="text-xs text-slate-400 font-semibold mb-1 uppercase">Yield</div>
+                <div className="text-3xl font-bold text-white">{property.analytics?.rentalYield || 0}%</div>
+              </div>
+              <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl">
+                <div className="text-xs text-slate-400 font-semibold mb-1 uppercase">Demand</div>
+                <div className="text-3xl font-bold text-white">{property.analytics?.demandScore || 0}%</div>
+              </div>
+            </div>
 
-  const hazardLevels = ["very_low", "low", "medium", "high", "very_high"];
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button 
+                onClick={onEdit}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-800 hover:border-slate-600/50 hover:text-white transition-all duration-200 text-sm font-medium"
+              >
+                <Edit size={14} />
+                Edit Property
+              </button>
+              <button 
+                onClick={onView}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 text-white border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-200 text-sm font-medium"
+              >
+                <Eye size={14} />
+                View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
-  const amenityOptions = {
-    transit: ["subway", "bus", "train", "light_rail", "airport"],
-    education: ["top_schools", "good_schools", "universities", "colleges"],
-    shopping: ["luxury_malls", "local_malls", "grocery", "boutiques"],
-    parks: ["community_parks", "nature_preserve", "playgrounds", "riverside_park"],
-    healthcare: ["hospital", "clinics", "specialty_clinics", "dentists"],
-    other: ["gym", "pool", "concierge", "security", "garage", "garden"],
-  };
+// View Property Modal
+interface ViewPropertyModalProps {
+  isOpen: boolean;
+  property: Property | null;
+  currentImageIndex: number;
+  onClose: () => void;
+  onEdit: () => void;
+  onNextImage: () => void;
+  onPrevImage: () => void;
+}
+
+function ViewPropertyModal({ isOpen, property, currentImageIndex, onClose, onEdit, onNextImage, onPrevImage }: ViewPropertyModalProps) {
+  if (!property) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-blue-600 bg-clip-text text-transparent">
-            {mode === "add" ? "Add New Property" : "Edit Property"}
-          </DialogTitle>
-          <DialogDescription className="text-slate-600">
-            {mode === "add"
-              ? "Create a new property listing with comprehensive analytics and risk assessment."
-              : "Update property details and analytics."}
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-800/50">
+        <DialogHeader className="border-b border-slate-800/50 pb-5">
+          <DialogTitle className="text-3xl font-bold text-white">{property.title}</DialogTitle>
+          <DialogDescription className="text-slate-400 text-base mt-2">
+            <div className="flex items-center">
+              <MapPin size={16} className="mr-2" />
+              {property.address || property.location}
+            </div>
           </DialogDescription>
         </DialogHeader>
-
-        <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-slate-100 p-1 rounded-lg">
-            <TabsTrigger value="basic" className="rounded-md text-xs">
-              Basic Info
-            </TabsTrigger>
-            <TabsTrigger value="details" className="rounded-md text-xs">
-              Property Details
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="rounded-md text-xs">
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="risks" className="rounded-md text-xs">
-              Risk Assessment
-            </TabsTrigger>
-            <TabsTrigger value="amenities" className="rounded-md text-xs">
-              Amenities
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="basic" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Property Title *</Label>
-                <Input
-                  name="title"
-                  placeholder="Luxury Downtown Penthouse"
-                  value={propertyData.title}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <Label>Price *</Label>
-                <Input
-                  name="price"
-                  placeholder="₹55,00,000"
-                  value={propertyData.price}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label>Location *</Label>
-                <Input
-                  name="location"
-                  placeholder="Downtown Financial District"
-                  value={propertyData.location}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label>Full Address</Label>
-                <Input
-                  name="address"
-                  placeholder="123 Skyline Boulevard, New York, NY 10001"
-                  value={propertyData.address}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <Label>Property Type</Label>
-                <Select
-                  value={propertyData.type}
-                  onValueChange={(value) => setPropertyData({ ...propertyData, type: value })}
+        
+        <div className="space-y-6 py-4">
+          {/* Image Gallery */}
+          <div className="relative w-full h-96 rounded-2xl overflow-hidden bg-slate-800 group">
+            <img 
+              src={property.images?.[currentImageIndex] || "/placeholder.svg"} 
+              alt={property.title} 
+              className="w-full h-full object-cover" 
+            />
+            
+            {property.images && property.images.length > 1 && (
+              <>
+                <button 
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-900/80 backdrop-blur-sm hover:bg-slate-800 border border-slate-700/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" 
+                  onClick={onPrevImage}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {propertyTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type.replace("_", " ")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Status</Label>
-                <Select
-                  value={propertyData.status}
-                  onValueChange={(value) => setPropertyData({ ...propertyData, status: value })}
+                  <ChevronLeft size={20} className="text-white" />
+                </button>
+                <button 
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-900/80 backdrop-blur-sm hover:bg-slate-800 border border-slate-700/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" 
+                  onClick={onNextImage}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="available">Available</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="sold">Sold</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <Label>Images</Label>
-              <Input type="file" multiple onChange={handleFileChange} />
-              <div className="flex flex-wrap gap-2 mt-2">
-                {previews.map((preview, index) => (
-                  <div key={index} className="relative">
-                    <img src={preview} alt="preview" className="w-24 h-24 object-cover rounded" />
-                    <Button
-                      variant="ghost"
-                      className="absolute top-0 right-0 text-red-500"
-                      onClick={() => removeImage(index)}
-                    >
-                      <X size={16} />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="details" className="space-y-4 mt-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Bedrooms</Label>
-                <Input
-                  type="number"
-                  name="bedrooms"
-                  placeholder="3"
-                  value={propertyData.bedrooms}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <Label>Bathrooms</Label>
-                <Input
-                  type="number"
-                  name="bathrooms"
-                  placeholder="2"
-                  value={propertyData.bathrooms}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <Label>Year Built</Label>
-                <Input
-                  type="number"
-                  name="yearBuilt"
-                  placeholder="2020"
-                  value={propertyData.yearBuilt}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label>Area</Label>
-                <div className="flex gap-2">
-                  <Input
-                    name="area"
-                    placeholder="2400"
-                    value={propertyData.area}
-                    onChange={handleChange}
-                  />
-                  <Select
-                    value={propertyData.areaUnit}
-                    onValueChange={(value) => setPropertyData({ ...propertyData, areaUnit: value })}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sq ft">sq ft</SelectItem>
-                      <SelectItem value="sq m">sq m</SelectItem>
-                      <SelectItem value="acres">acres</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                name="description"
-                placeholder="Describe the property features, unique selling points, and key amenities..."
-                value={propertyData.description}
-                onChange={handleChange}
-                rows={4}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Investment Potential (%)</Label>
-                <Slider
-                  value={[propertyData.analytics.investmentPotential]}
-                  onValueChange={(value) =>
-                    handleNestedChange("analytics", "investmentPotential", value[0])
-                  }
-                  max={100}
-                  step={1}
-                />
-                <div className="text-sm text-slate-600 mt-1">
-                  {propertyData.analytics.investmentPotential}%
-                </div>
-              </div>
-              <div>
-                <Label>Risk Score (%)</Label>
-                <Slider
-                  value={[propertyData.analytics.riskScore]}
-                  onValueChange={(value) => handleNestedChange("analytics", "riskScore", value[0])}
-                  max={100}
-                  step={1}
-                />
-                <div className="text-sm text-slate-600 mt-1">{propertyData.analytics.riskScore}%</div>
-              </div>
-              <div>
-                <Label>Rental Yield (%)</Label>
-                <Input
-                  type="number"
-                  value={propertyData.analytics.rentalYield}
-                  onChange={(e) =>
-                    handleNestedChange("analytics", "rentalYield", parseFloat(e.target.value) || 0)
-                  }
-                />
-              </div>
-              <div>
-                <Label>Appreciation (%)</Label>
-                <Input
-                  type="number"
-                  value={propertyData.analytics.appreciation}
-                  onChange={(e) =>
-                    handleNestedChange("analytics", "appreciation", parseFloat(e.target.value) || 0)
-                  }
-                />
-              </div>
-              <div>
-                <Label>Demand Score (%)</Label>
-                <Input
-                  type="number"
-                  value={propertyData.analytics.demandScore}
-                  onChange={(e) =>
-                    handleNestedChange("analytics", "demandScore", parseFloat(e.target.value) || 0)
-                  }
-                />
-              </div>
-              <div>
-                <Label>Market Value</Label>
-                <Input
-                  type="number"
-                  value={propertyData.analytics.marketValue}
-                  onChange={(e) =>
-                    handleNestedChange("analytics", "marketValue", parseFloat(e.target.value) || 0)
-                  }
-                />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="risks" className="space-y-4 mt-4">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Risk Hazards</Label>
-                <Button variant="outline" size="sm" onClick={addHazard}>
-                  <Plus size={14} className="mr-1" />
-                  Add Hazard
-                </Button>
-              </div>
-              {propertyData.hazards.map((hazard, index) => (
-                <div key={index} className="grid grid-cols-3 gap-2 p-3 border rounded-lg">
-                  <Select
-                    value={hazard.type}
-                    onValueChange={(value) => updateHazard(index, "type", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {hazardTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={hazard.level}
-                    onValueChange={(value) => updateHazard(index, "level", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {hazardLevels.map((level) => (
-                        <SelectItem key={level} value={level}>
-                          {level.replace("_", " ")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Description"
-                      value={hazard.description}
-                      onChange={(e) => updateHazard(index, "description", e.target.value)}
+                  <ChevronRight size={20} className="text-white" />
+                </button>
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {property.images.map((imageUrl: string, idx: number) => (
+                    <div 
+                      key={idx} 
+                      className={`h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-8' : 'bg-white/40 w-1.5'}`}
                     />
-                    <Button variant="outline" size="sm" onClick={() => removeHazard(index)}>
-                      <X size={14} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="amenities" className="space-y-4 mt-4">
-            {Object.entries(amenityOptions).map(([category, options]) => (
-              <div key={category}>
-                <Label className="capitalize">{category.replace("_", " ")}</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {options.map((option) => (
-                    <Badge
-                      key={option}
-                      variant={propertyData.amenities[category].includes(option) ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => toggleAmenity(category, option)}
-                    >
-                      {option.replace("_", " ")}
-                    </Badge>
                   ))}
                 </div>
-              </div>
-            ))}
-          </TabsContent>
-        </Tabs>
+              </>
+            )}
+          </div>
 
-        <DialogFooter className="mt-6">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit}>
-            <Save size={16} className="mr-2" />
-            {mode === "add" ? "Add Property" : "Update Property"}
-          </Button>
+          {/* Property Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-5">
+              <div>
+                <h4 className="text-white font-bold text-lg mb-3">Overview</h4>
+                <p className="text-slate-300 leading-relaxed">{property.description}</p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl text-center">
+                  <Bed size={24} className="text-slate-400 mb-2 mx-auto" />
+                  <div className="text-2xl font-bold text-white mb-1">{property.bedrooms}</div>
+                  <div className="text-xs text-slate-400">Bedrooms</div>
+                </div>
+                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl text-center">
+                  <Bath size={24} className="text-slate-400 mb-2 mx-auto" />
+                  <div className="text-2xl font-bold text-white mb-1">{property.bathrooms}</div>
+                  <div className="text-xs text-slate-400">Bathrooms</div>
+                </div>
+                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl text-center">
+                  <Maximize2 size={24} className="text-slate-400 mb-2 mx-auto" />
+                  <div className="text-2xl font-bold text-white mb-1">{property.area}</div>
+                  <div className="text-xs text-slate-400">{property.areaUnit}</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-white font-bold text-lg mb-3">Analytics</h4>
+              <div className="space-y-3">
+                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-400 text-sm font-semibold">Investment Potential</span>
+                    <span className="text-white font-bold text-lg">{property.analytics?.investmentPotential || 0}%</span>
+                  </div>
+                  <div className="h-2 bg-slate-700/30 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"
+                      style={{ width: `${property.analytics?.investmentPotential || 0}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-400 text-sm font-semibold">Risk Score</span>
+                    <span className="text-white font-bold text-lg">{property.analytics?.riskScore || 0}%</span>
+                  </div>
+                  <div className="h-2 bg-slate-700/30 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full"
+                      style={{ width: `${property.analytics?.riskScore || 0}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-400 text-sm font-semibold">Rental Yield</span>
+                    <span className="text-white font-bold text-lg">{property.analytics?.rentalYield || 0}%</span>
+                  </div>
+                  <div className="h-2 bg-slate-700/30 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full"
+                      style={{ width: `${property.analytics?.rentalYield || 0}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="border-t border-slate-800/50 pt-5">
+          <button 
+            onClick={onClose}
+            className="px-6 py-3 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-700/30 hover:border-slate-600/50 transition-all duration-200 font-semibold"
+          >
+            Close
+          </button>
+          <button 
+            onClick={onEdit}
+            className="group px-6 py-3 bg-white hover:bg-slate-100 text-slate-900 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2"
+          >
+            <Edit size={16} />
+            Edit Property
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+}
+
+// Empty State Component
+function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 px-4">
+      <div className="relative mb-8">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 blur-3xl rounded-full" />
+        <div className="relative w-24 h-24 bg-gradient-to-br from-slate-800 to-slate-700 border border-slate-600/50 rounded-3xl flex items-center justify-center shadow-2xl">
+          <Home className="w-12 h-12 text-slate-400" />
+        </div>
+      </div>
+      <h3 className="text-3xl font-bold text-white mb-3">No Properties Yet</h3>
+      <p className="text-slate-400 text-center max-w-md mb-8 leading-relaxed">
+        Start building your real estate portfolio by adding your first property listing.
+      </p>
+      <button
+        onClick={onCreateClick}
+        className="group flex items-center gap-3 px-8 py-4 bg-white hover:bg-slate-100 text-slate-900 rounded-xl font-bold transition-all duration-200 shadow-lg hover:scale-105"
+      >
+        <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+        Add Your First Property
+      </button>
+    </div>
+  );
+}
+
+// No Results State Component
+function NoResultsState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 px-4">
+      <div className="w-20 h-20 bg-slate-800/50 border border-slate-700/50 rounded-2xl flex items-center justify-center mb-6">
+        <Search className="w-10 h-10 text-slate-500" />
+      </div>
+      <h3 className="text-2xl font-bold text-white mb-2">No Properties Found</h3>
+      <p className="text-slate-400 text-center max-w-md">
+        Try adjusting your search or filter criteria
+      </p>
+    </div>
+  );
+}
 
 export default Properties;

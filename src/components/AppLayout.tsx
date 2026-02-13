@@ -396,7 +396,6 @@
 
 
 
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -426,7 +425,7 @@ const sidebarItems = [
   { icon: Users, label: 'Avatars', path: '/avatars' },
   { icon: Building, label: 'Properties', path: '/properties' },
   { icon: MessageSquare, label: 'Leads', path: '/leads' },
-  { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+  // { icon: BarChart3, label: 'Analytics', path: '/analytics' },
   { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 
@@ -614,7 +613,7 @@ const AppLayout = () => {
       {/* Main Content Area */}
       <div className="pt-16">
         {/* Page Content */}
-        <main className="p-4 lg:p-6">
+        <main className="">
           <Outlet />
           {/* < Dashboard/> */}
         </main>

@@ -66,7 +66,7 @@ export interface ApiChat {
       image: string;
     }[];
   }[];
-  context: Record<string, any>;
+  context: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
