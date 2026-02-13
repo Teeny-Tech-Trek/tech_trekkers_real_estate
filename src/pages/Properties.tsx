@@ -3,12 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Plus, Home, TrendingUp, AlertTriangle, Eye, Edit, Trash2, Heart, MapPin, 
   ChevronLeft, ChevronRight, Bed, Bath, Maximize2, Filter, BarChart3, MoreVertical,
-  Download, Share2, Copy, Settings, X, RefreshCw, Sparkles, Zap, ArrowUpRight
+  Download, Share2, Copy, Settings, X, RefreshCw, Sparkles, Zap, ArrowUpRight,
+  Calendar, Users, Award, DollarSign, Shield, Map as MapIcon, 
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import PropertyFormModal from "@/components/PropertyFormModal";
 import { usePropertiesLogic } from "@/Logics/UsePropertiesLogic";
@@ -169,7 +167,7 @@ const Properties: React.FC = () => {
 
               {/* Divider */}
               <div className="w-px h-16 bg-gradient-to-b from-transparent via-slate-700/30 to-transparent" />
-
+Location Insights
               {/* Stat 2 */}
               <div className="flex-1">
                 <div className="flex items-baseline gap-3 mb-1.5">
@@ -607,7 +605,10 @@ function PropertyAnalyticsCard({ property, index, onView, onEdit }: PropertyAnal
   );
 }
 
-// View Property Modal
+
+
+import { Badge } from "@/components/ui/badge";
+
 interface ViewPropertyModalProps {
   isOpen: boolean;
   property: Property | null;
@@ -618,123 +619,335 @@ interface ViewPropertyModalProps {
   onPrevImage: () => void;
 }
 
-function ViewPropertyModal({ isOpen, property, currentImageIndex, onClose, onEdit, onNextImage, onPrevImage }: ViewPropertyModalProps) {
+export function ViewPropertyModal({
+  isOpen,
+  property,
+  currentImageIndex,
+  onClose,
+  onEdit,
+  onNextImage,
+  onPrevImage
+}: ViewPropertyModalProps) {
   if (!property) return null;
+
+  const statusColors = {
+    available: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+    pending: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    sold: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    draft: "bg-slate-500/20 text-slate-400 border-slate-500/30",
+  };
+
+  const getStatusColor = (status: string) => {
+    return statusColors[status as keyof typeof statusColors] || statusColors.draft;
+  };
+
+  const AnalyticsCard = ({ 
+    label, 
+    value, 
+    color = "blue",
+    icon: Icon 
+  }: { 
+    label: string; 
+    value: number; 
+    color?: string;
+    icon?: any;
+  }) => {
+    const colorClasses = {
+      blue: { gradient: "from-blue-500 to-blue-600", bg: "bg-blue-500/10", border: "border-blue-500/30", text: "text-blue-400" },
+      orange: { gradient: "from-orange-500 to-orange-600", bg: "bg-orange-500/10", border: "border-orange-500/30", text: "text-orange-400" },
+      purple: { gradient: "from-purple-500 to-purple-600", bg: "bg-purple-500/10", border: "border-purple-500/30", text: "text-purple-400" },
+      emerald: { gradient: "from-emerald-500 to-emerald-600", bg: "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-400" },
+      red: { gradient: "from-red-500 to-red-600", bg: "bg-red-500/10", border: "border-red-500/30", text: "text-red-400" },
+    };
+
+    const colors = colorClasses[color as keyof typeof colorClasses] || colorClasses.blue;
+
+    return (
+      <div className={`p-5 border ${colors.border} rounded-xl ${colors.bg} backdrop-blur-sm`}>
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex items-center gap-2">
+            {Icon && <Icon className={`w-4 h-4 ${colors.text}`} />}
+            <span className="text-slate-300 text-sm font-medium">{label}</span>
+          </div>
+          <span className={`text-2xl font-bold ${colors.text}`}>{value}%</span>
+        </div>
+        <div className="h-2 bg-slate-800/50 rounded-full overflow-hidden">
+          <div 
+            className={`h-full bg-gradient-to-r ${colors.gradient} rounded-full transition-all duration-500`}
+            style={{ width: `${value}%` }}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const PropertyFeature = ({ 
+    icon: Icon, 
+    value, 
+    label 
+  }: { 
+    icon: any; 
+    value: string | number; 
+    label: string;
+  }) => (
+    <div className="flex items-center gap-4 p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl hover:bg-slate-800/50 transition-all group">
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+        <Icon className="w-6 h-6 text-blue-400" />
+      </div>
+      <div>
+        <div className="text-2xl font-bold text-white">{value}</div>
+        <div className="text-sm text-slate-400">{label}</div>
+      </div>
+    </div>
+  );
+
+  // Get all amenities count
+  const totalAmenities = property.amenities 
+    ? Object.values(property.amenities).flat().length 
+    : 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-800/50">
-        <DialogHeader className="border-b border-slate-800/50 pb-5">
-          <DialogTitle className="text-3xl font-bold text-white">{property.title}</DialogTitle>
-          <DialogDescription className="text-slate-400 text-base mt-2">
-            <div className="flex items-center">
-              <MapPin size={16} className="mr-2" />
-              {property.address || property.location}
-            </div>
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-6 py-4">
-          {/* Image Gallery */}
-          <div className="relative w-full h-96 rounded-2xl overflow-hidden bg-slate-800 group">
-            <img 
-              src={property.images?.[currentImageIndex] || "/placeholder.svg"} 
-              alt={property.title} 
-              className="w-full h-full object-cover" 
-            />
-            
-            {property.images && property.images.length > 1 && (
-              <>
-                <button 
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-900/80 backdrop-blur-sm hover:bg-slate-800 border border-slate-700/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" 
-                  onClick={onPrevImage}
-                >
-                  <ChevronLeft size={20} className="text-white" />
-                </button>
-                <button 
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-900/80 backdrop-blur-sm hover:bg-slate-800 border border-slate-700/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" 
-                  onClick={onNextImage}
-                >
-                  <ChevronRight size={20} className="text-white" />
-                </button>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                  {property.images.map((imageUrl: string, idx: number) => (
-                    <div 
-                      key={idx} 
-                      className={`h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-8' : 'bg-white/40 w-1.5'}`}
-                    />
-                  ))}
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border-slate-800/50 shadow-2xl p-0">
+        {/* Header Section */}
+        <div className="relative">
+          <DialogHeader className="px-8 pt-8 pb-6 border-b border-slate-800/50 bg-gradient-to-r from-slate-900/80 to-transparent backdrop-blur-sm">
+            <div className="flex items-start justify-between gap-6">
+              <div className="flex-1 space-y-3">
+                <div className="flex items-center gap-3">
+                  <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                    {property.title}
+                  </DialogTitle>
+                  <Badge className={`px-3 py-1 border ${getStatusColor(property.status)} font-medium capitalize`}>
+                    {property.status}
+                  </Badge>
                 </div>
-              </>
-            )}
-          </div>
-
-          {/* Property Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-5">
-              <div>
-                <h4 className="text-white font-bold text-lg mb-3">Overview</h4>
-                <p className="text-slate-300 leading-relaxed">{property.description}</p>
+                <DialogDescription className="text-slate-400 text-base flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-purple-400" />
+                  {property.address || property.location}
+                </DialogDescription>
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Eye className="w-4 h-4" />
+                    <span>{property.views || 0} views</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Users className="w-4 h-4" />
+                    <span>{property.leads || 0} leads</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Calendar className="w-4 h-4" />
+                    <span>Built {property.yearBuilt}</span>
+                  </div>
+                </div>
               </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl text-center">
-                  <Bed size={24} className="text-slate-400 mb-2 mx-auto" />
-                  <div className="text-2xl font-bold text-white mb-1">{property.bedrooms}</div>
-                  <div className="text-xs text-slate-400">Bedrooms</div>
-                </div>
-                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl text-center">
-                  <Bath size={24} className="text-slate-400 mb-2 mx-auto" />
-                  <div className="text-2xl font-bold text-white mb-1">{property.bathrooms}</div>
-                  <div className="text-xs text-slate-400">Bathrooms</div>
-                </div>
-                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl text-center">
-                  <Maximize2 size={24} className="text-slate-400 mb-2 mx-auto" />
-                  <div className="text-2xl font-bold text-white mb-1">{property.area}</div>
-                  <div className="text-xs text-slate-400">{property.areaUnit}</div>
+              <div className="text-right">
+                <div className="text-sm text-slate-400 mb-1">Listed Price</div>
+                <div className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">
+                  {property.price}
                 </div>
               </div>
             </div>
+          </DialogHeader>
+        </div>
 
-            <div>
-              <h4 className="text-white font-bold text-lg mb-3">Analytics</h4>
-              <div className="space-y-3">
-                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-400 text-sm font-semibold">Investment Potential</span>
-                    <span className="text-white font-bold text-lg">{property.analytics?.investmentPotential || 0}%</span>
+        {/* Scrollable Content Area */}
+        <div className="overflow-y-auto px-8 py-6" style={{ maxHeight: "calc(95vh - 240px)" }}>
+          <div className="space-y-8">
+            {/* Image Gallery */}
+            <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-slate-800/50 border border-slate-700/50 group">
+              <img 
+                src={property.images?.[currentImageIndex] || "/placeholder.svg"} 
+                alt={property.title} 
+                className="w-full h-full object-cover" 
+              />
+              
+              {/* Image Overlay Info */}
+              <div className="absolute top-4 left-4 flex gap-2">
+                <div className="px-4 py-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-lg text-white text-sm font-medium">
+                  {currentImageIndex + 1} / {property.images?.length || 1}
+                </div>
+              </div>
+
+              {property.images && property.images.length > 1 && (
+                <>
+                  <button 
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-slate-900/90 backdrop-blur-md hover:bg-slate-800 border border-slate-700/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110" 
+                    onClick={onPrevImage}
+                  >
+                    <ChevronLeft className="w-6 h-6 text-white" />
+                  </button>
+                  <button 
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-slate-900/90 backdrop-blur-md hover:bg-slate-800 border border-slate-700/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110" 
+                    onClick={onNextImage}
+                  >
+                    <ChevronRight className="w-6 h-6 text-white" />
+                  </button>
+                  
+                  {/* Image Indicators */}
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-full px-4 py-2">
+                    {property.images.map((_: string, idx: number) => (
+                      <div 
+                        key={idx} 
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          idx === currentImageIndex 
+                            ? 'bg-white w-8' 
+                            : 'bg-white/30 w-1.5 hover:bg-white/50'
+                        }`}
+                      />
+                    ))}
                   </div>
-                  <div className="h-2 bg-slate-700/30 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"
-                      style={{ width: `${property.analytics?.investmentPotential || 0}%` }}
+                </>
+              )}
+            </div>
+
+            {/* Property Overview */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                {/* Description */}
+                <div className="p-6 bg-slate-900/50 border border-slate-800/50 rounded-2xl">
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <Home className="w-5 h-5 text-blue-400" />
+                    Property Overview
+                  </h3>
+                  <p className="text-slate-300 leading-relaxed text-base">
+                    {property.description || "No description available for this property."}
+                  </p>
+                </div>
+
+                {/* Property Features Grid */}
+                <div className="grid grid-cols-3 gap-4">
+                  <PropertyFeature icon={Bed} value={property.bedrooms} label="Bedrooms" />
+                  <PropertyFeature icon={Bath} value={property.bathrooms} label="Bathrooms" />
+                  <PropertyFeature icon={Maximize2} value={`${property.area} ${property.areaUnit}`} label="Total Area" />
+                </div>
+
+                {/* Analytics Section */}
+                <div className="p-6 bg-gradient-to-br from-blue-500/5 to-purple-500/5 border border-blue-500/20 rounded-2xl">
+                  <h3 className="text-xl font-bold text-white mb-5 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-blue-400" />
+                    Investment Analytics
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <AnalyticsCard 
+                      label="Investment Potential" 
+                      value={property.analytics?.investmentPotential || 0}
+                      color="blue"
+                      icon={Award}
+                    />
+                    <AnalyticsCard 
+                      label="Risk Score" 
+                      value={property.analytics?.riskScore || 0}
+                      color="orange"
+                      icon={AlertTriangle}
+                    />
+                    <AnalyticsCard 
+                      label="Rental Yield" 
+                      value={property.analytics?.rentalYield || 0}
+                      color="purple"
+                      icon={DollarSign}
+                    />
+                    <AnalyticsCard 
+                      label="Market Demand" 
+                      value={property.analytics?.demandScore || 0}
+                      color="emerald"
+                      icon={TrendingUp}
                     />
                   </div>
                 </div>
-                
-                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-400 text-sm font-semibold">Risk Score</span>
-                    <span className="text-white font-bold text-lg">{property.analytics?.riskScore || 0}%</span>
-                  </div>
-                  <div className="h-2 bg-slate-700/30 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full"
-                      style={{ width: `${property.analytics?.riskScore || 0}%` }}
-                    />
+              </div>
+
+              {/* Sidebar */}
+              <div className="space-y-6">
+                {/* Property Type Card */}
+                <div className="p-6 bg-gradient-to-br from-slate-900/80 to-slate-800/50 border border-slate-700/50 rounded-2xl">
+                  <h4 className="text-sm font-semibold text-slate-400 mb-3">Property Type</h4>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center">
+                      <Home className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <span className="text-lg font-semibold text-white capitalize">
+                      {property.type?.replace('_', ' ')}
+                    </span>
                   </div>
                 </div>
-                
-                <div className="p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-400 text-sm font-semibold">Rental Yield</span>
-                    <span className="text-white font-bold text-lg">{property.analytics?.rentalYield || 0}%</span>
+
+                {/* Risk Assessment */}
+                {property.hazards && property.hazards.length > 0 && (
+                  <div className="p-6 bg-gradient-to-br from-orange-500/5 to-red-500/5 border border-orange-500/20 rounded-2xl">
+                    <h4 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-orange-400" />
+                      Risk Hazards ({property.hazards.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {property.hazards.slice(0, 3).map((hazard, idx) => (
+                        <div 
+                          key={idx}
+                          className="flex items-center justify-between p-3 bg-slate-900/50 border border-slate-700/30 rounded-lg"
+                        >
+                          <span className="text-sm text-slate-300 capitalize">{hazard.type}</span>
+                          <Badge className={`text-xs ${
+                            hazard.level === 'high' || hazard.level === 'very_high'
+                              ? 'bg-red-500/20 text-red-400 border-red-500/30'
+                              : hazard.level === 'medium'
+                              ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                              : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                          }`}>
+                            {hazard.level.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                      ))}
+                      {property.hazards.length > 3 && (
+                        <div className="text-xs text-slate-500 text-center pt-2">
+                          +{property.hazards.length - 3} more hazards
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="h-2 bg-slate-700/30 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full"
-                      style={{ width: `${property.analytics?.rentalYield || 0}%` }}
-                    />
+                )}
+
+                {/* Amenities Summary */}
+                {totalAmenities > 0 && (
+                  <div className="p-6 bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-500/20 rounded-2xl">
+                    <h4 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      Amenities & Features
+                    </h4>
+                    <div className="flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                          {totalAmenities}
+                        </div>
+                        <div className="text-sm text-slate-400">Available Amenities</div>
+                      </div>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                      {property.amenities && Object.entries(property.amenities).map(([category, items]) => {
+                        if (items.length === 0) return null;
+                        return (
+                          <div key={category} className="flex items-center justify-between text-sm">
+                            <span className="text-slate-400 capitalize">{category}</span>
+                            <span className="text-white font-semibold">{items.length}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Location Insights */}
+                <div className="p-6 bg-gradient-to-br from-slate-900/80 to-slate-800/50 border border-slate-700/50 rounded-2xl">
+                  <h4 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2">
+                    <Map className="w-4 h-4 text-blue-400" />
+                    Location Insights
+                  </h4>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Appreciation Rate</span>
+                      <span className="text-emerald-400 font-semibold">
+                        +{property.analytics?.appreciation || 0}%
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -742,21 +955,24 @@ function ViewPropertyModal({ isOpen, property, currentImageIndex, onClose, onEdi
           </div>
         </div>
 
-        <DialogFooter className="border-t border-slate-800/50 pt-5">
-          <button 
-            onClick={onClose}
-            className="px-6 py-3 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-700/30 hover:border-slate-600/50 transition-all duration-200 font-semibold"
-          >
-            Close
-          </button>
-          <button 
-            onClick={onEdit}
-            className="group px-6 py-3 bg-white hover:bg-slate-100 text-slate-900 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2"
-          >
-            <Edit size={16} />
-            Edit Property
-          </button>
-        </DialogFooter>
+        {/* Footer Actions */}
+        <div className="px-8 py-6 border-t border-slate-800/50 bg-gradient-to-r from-slate-900/80 to-transparent backdrop-blur-sm">
+          <div className="flex justify-between items-center gap-4">
+            <button 
+              onClick={onClose}
+              className="px-6 py-3 border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-800 hover:border-slate-600 transition-all duration-200 font-semibold"
+            >
+              Close
+            </button>
+            <button 
+              onClick={onEdit}
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/25"
+            >
+              <Edit className="w-4 h-4" />
+              Edit Property
+            </button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
