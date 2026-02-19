@@ -9,6 +9,7 @@ const ImageShowcaseSection = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -72,6 +73,7 @@ const ImageShowcaseSection = () => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
+            setShouldLoadVideo(true);
             // When video comes into view, play it (muted for autoplay to work)
             video.muted = true; // Ensure muted for autoplay
             setIsMuted(true);
@@ -200,8 +202,8 @@ const ImageShowcaseSection = () => {
                     muted
                     loop
                     playsInline
-                    preload="auto"
-                    src={eStateVideo}
+                    preload="metadata"
+                    src={shouldLoadVideo ? eStateVideo : undefined}
                   >
                     Your browser does not support the video tag.
                   </video>

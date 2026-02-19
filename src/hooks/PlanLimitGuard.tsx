@@ -1,6 +1,6 @@
 // src/components/PlanLimitGuard.tsx
 import { ReactNode } from 'react';
-import { usePlanLimits, PlanLimits } from '@/hooks/usePlanLimits';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { PlanLimitAlert } from './PlanLimitAlert';
 import { Loader2 } from 'lucide-react';
 
@@ -16,6 +16,7 @@ export const PlanLimitGuard: React.FC<PlanLimitGuardProps> = ({
   fallback
 }) => {
   const limits = usePlanLimits();
+  const limitKey = type === 'team' ? 'teamMembers' : type === 'agent' ? 'agents' : 'properties';
 
   if (limits.isLoading) {
     return (
@@ -25,15 +26,15 @@ export const PlanLimitGuard: React.FC<PlanLimitGuardProps> = ({
     );
   }
 
-  const isAtLimit = limits.isAtLimit[type === 'team' ? 'teamMembers' : `${type}s`];
+  const isAtLimit = limits.isAtLimit[limitKey];
 
   if (isAtLimit) {
     if (fallback) {
       return <>{fallback}</>;
     }
 
-    const current = limits[type === 'team' ? 'teamMembers' : `${type}s`].used;
-    const limit = limits[type === 'team' ? 'teamMembers' : `${type}s`].limit;
+    const current = limits[limitKey].used;
+    const limit = limits[limitKey].limit;
 
     return (
       <PlanLimitAlert

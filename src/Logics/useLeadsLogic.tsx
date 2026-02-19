@@ -60,7 +60,7 @@ function isValidObjectId(value: string): boolean {
   return /^[a-fA-F0-9]{24}$/.test(value);
 }
 
-export function useLeadsLogic() {
+export function useLeadsLogic(scope?: { agentId?: string; propertyId?: string }) {
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -89,6 +89,8 @@ export function useLeadsLogic() {
     [user]
   );
   const currentUserId = useMemo(() => getUserId(user), [user]);
+  const scopedAgentId = scope?.agentId?.trim() || "";
+  const scopedPropertyId = scope?.propertyId?.trim() || "";
 
   const loadLeads = useCallback(async () => {
     setLoading(true);
@@ -172,19 +174,21 @@ export function useLeadsLogic() {
         ownerName.includes(query);
       const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
       const matchesQuality = qualityFilter === "all" || lead.leadQuality === qualityFilter;
+      const matchesScopedAgent = !scopedAgentId || lead.agent === scopedAgentId;
+      const matchesScopedProperty = !scopedPropertyId || lead.property === scopedPropertyId;
 
-      return matchesSearch && matchesStatus && matchesQuality;
+      return matchesSearch && matchesStatus && matchesQuality && matchesScopedAgent && matchesScopedProperty;
     });
-  }, [leads, qualityFilter, search, statusFilter]);
+  }, [leads, qualityFilter, scopedAgentId, scopedPropertyId, search, statusFilter]);
 
   const stats = useMemo(() => {
-    const total = leads.length;
-    const hot = leads.filter((l) => l.leadQuality === "hot" || l.leadQuality === "very_hot").length;
-    const newLeads = leads.filter((l) => l.status === "new").length;
-    const closed = leads.filter((l) => l.status === "closed").length;
-    const mine = (leads as LeadWithOwner[]).filter((l) => l.isMine).length;
+    const total = filteredLeads.length;
+    const hot = filteredLeads.filter((l) => l.leadQuality === "hot" || l.leadQuality === "very_hot").length;
+    const newLeads = filteredLeads.filter((l) => l.status === "new").length;
+    const closed = filteredLeads.filter((l) => l.status === "closed").length;
+    const mine = (filteredLeads as LeadWithOwner[]).filter((l) => l.isMine).length;
     return { total, hot, newLeads, closed, mine };
-  }, [leads]);
+  }, [filteredLeads]);
 
   const canManageLead = useCallback(
     (lead: LeadWithOwner) => {
@@ -399,7 +403,7 @@ export function useLeadsLogic() {
     qualityFilter,
     setQualityFilter,
     leads: filteredLeads as LeadWithOwner[],
-    totalLeads: leads.length,
+    totalLeads: filteredLeads.length,
     stats,
     selectedLead,
     setSelectedLead,

@@ -11,17 +11,17 @@ export type LeadStatus =
 
 export type LeadQuality = "cold" | "warm" | "hot" | "very_hot";
 
-export interface LeadBudget {
-  min?: number;
-  max?: number;
-  flexible?: boolean;
-}
-
 export interface LeadContactInfo {
   name?: string;
   email?: string;
   phone?: string;
   preferredContact?: "email" | "phone" | "whatsapp" | "any";
+}
+
+export interface LeadBudget {
+  min?: number;
+  max?: number;
+  flexible?: boolean;
 }
 
 export interface LeadQualification {
@@ -77,7 +77,6 @@ export interface CreateLeadPayload {
   status?: LeadStatus;
   leadQuality?: LeadQuality;
   qualification?: LeadQualification;
-  tags?: string[];
 }
 
-export type UpdateLeadPayload = Partial<CreateLeadPayload> & Record<string, unknown>;
+export type UpdateLeadPayload = Partial<CreateLeadPayload>;

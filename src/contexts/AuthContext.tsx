@@ -26,7 +26,7 @@ const normalizeOrganizationId = (
 };
 
 const normalizeUser = (rawUser: User): User => {
-  const normalizedId = rawUser.id || rawUser._id;
+  const normalizedId = rawUser.id || rawUser._id || rawUser.accountId;
   return {
     ...rawUser,
     id: normalizedId,

@@ -5,7 +5,14 @@ import gsap from "gsap";
 import React from "react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import robotImg from "../imges/ChatGPT Image Nov 14, 2025, 06_44_35 PM.png"
-import estateVideo from "../imges/ai agent final animation video.mp4"
+
+type FloatingParticleProps = {
+  delay: number;
+  duration: number;
+  initialX: number;
+  initialY: number;
+  size?: number;
+};
 
 const Hero = () => {
   const containerRef = useRef(null);
@@ -109,24 +116,26 @@ const Hero = () => {
   }, [isMobile]);
 
   // Floating particles - Memoized for performance
-  const FloatingParticle = React.memo(({ delay, duration, initialX, initialY, size = 2 }) => (
-    <motion.div
-      className="absolute rounded-full bg-white/20"
-      style={{ width: size, height: size, willChange: "transform" }}
-      initial={{ x: initialX, y: initialY, opacity: 0 }}
-      animate={{
-        x: [initialX, initialX + 40, initialX],
-        y: [initialY, initialY - 80, initialY],
-        opacity: [0, 0.4, 0],
-      }}
-      transition={{
-        duration,
-        delay,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-    />
-  ));
+  const FloatingParticle = React.memo(
+    ({ delay, duration, initialX, initialY, size = 2 }: FloatingParticleProps) => (
+      <motion.div
+        className="absolute rounded-full bg-white/20"
+        style={{ width: size, height: size, willChange: "transform" }}
+        initial={{ x: initialX, y: initialY, opacity: 0 }}
+        animate={{
+          x: [initialX, initialX + 40, initialX],
+          y: [initialY, initialY - 80, initialY],
+          opacity: [0, 0.4, 0],
+        }}
+        transition={{
+          duration,
+          delay,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+    )
+  );
 
   return (
     <section
@@ -367,6 +376,9 @@ const Hero = () => {
                   <img
                     src={robotImg}
                     alt="AI Agent Robot"
+                    loading="eager"
+                    decoding="sync"
+                    fetchPriority="high"
                     className="w-full h-auto relative z-10 drop-shadow-2xl"
                   />
                   

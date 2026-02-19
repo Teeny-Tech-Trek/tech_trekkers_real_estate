@@ -1,4 +1,6 @@
 import React from "react";
+import { useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Search,
   RefreshCw,
@@ -11,6 +13,8 @@ import {
   Pencil,
   Trash2,
   X,
+  ArrowUpRight,
+  MessageSquare,
 } from "lucide-react";
 import { useLeadsLogic } from "@/Logics/useLeadsLogic";
 import { LeadQuality, LeadStatus, LeadWithOwner } from "@/types/lead";
@@ -76,7 +80,32 @@ function leadDisplayPhone(lead: LeadWithOwner): string {
 }
 
 export default function Leads() {
-  const logic = useLeadsLogic();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const scope = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const agentId = params.get("agentId") || "";
+    const propertyId = params.get("propertyId") || "";
+    const agentName = params.get("agentName") || "";
+    const propertyName = params.get("propertyName") || "";
+    return { agentId, propertyId, agentName, propertyName };
+  }, [location.search]);
+
+  const logic = useLeadsLogic({ agentId: scope.agentId, propertyId: scope.propertyId });
+  const agentMap = useMemo(
+    () => new Map(logic.availableAgents.map((agent) => [agent._id, agent.name])),
+    [logic.availableAgents]
+  );
+  const propertyMap = useMemo(
+    () => new Map(logic.availableProperties.map((property) => [property._id, property.title])),
+    [logic.availableProperties]
+  );
+
+  const scopeLabel = scope.agentId
+    ? `Showing leads for avatar: ${scope.agentName || scope.agentId}`
+    : scope.propertyId
+    ? `Showing leads for property: ${scope.propertyName || scope.propertyId}`
+    : "Showing leads for all avatars and properties";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628]">
@@ -90,13 +119,24 @@ export default function Leads() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-7">
             <div>
               <h1 className="text-5xl font-bold text-white tracking-tight">Leads</h1>
-              <p className="text-slate-400 mt-2">
+              <p className="text-cyan-300 mt-2 font-medium">
+                {scopeLabel}
+              </p>
+              <p className="text-slate-400 mt-1">
                 {logic.isOwnerOrAdmin
                   ? "You can review all organization leads and member ownership."
                   : "You can review and manage your own leads."}
               </p>
             </div>
             <div className="flex items-center gap-3">
+              {(scope.agentId || scope.propertyId) && (
+                <button
+                  onClick={() => navigate("/leads")}
+                  className="px-4 py-2 rounded-full border border-slate-700 text-slate-200 hover:bg-slate-800/50 text-sm"
+                >
+                  Show All Leads
+                </button>
+              )}
               <button
                 onClick={logic.loadLeads}
                 className="p-2.5 bg-slate-900/40 border border-slate-800/50 rounded-full hover:bg-slate-800/50 transition-all group"
@@ -184,6 +224,7 @@ export default function Leads() {
                     <th className="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Score</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Quality</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Owner</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Agent / Property</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Updated</th>
                     <th className="text-right px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Actions</th>
                   </tr>
@@ -233,6 +274,38 @@ export default function Leads() {
                         <div className="text-sm text-slate-200">{lead.ownerName}</div>
                         {logic.isOwnerOrAdmin && <div className="text-xs text-slate-400 mt-1">{lead.ownerEmail || "-"}</div>}
                       </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-1">
+                          <div className="text-xs text-slate-300">
+                            Agent: {agentMap.get(lead.agent) || lead.agent || "-"}
+                          </div>
+                          <div className="text-xs text-slate-400">
+                            Property: {lead.property ? propertyMap.get(lead.property) || lead.property : "-"}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            {lead.agent ? (
+                              <button
+                                onClick={() =>
+                                  navigate(`/avatars?focusAgentId=${encodeURIComponent(lead.agent)}`)
+                                }
+                                className="inline-flex items-center gap-1 text-[11px] text-cyan-300 hover:text-cyan-200"
+                              >
+                                View Agent <ArrowUpRight className="w-3 h-3" />
+                              </button>
+                            ) : null}
+                            {lead.property ? (
+                              <button
+                                onClick={() =>
+                                  navigate(`/properties?focusPropertyId=${encodeURIComponent(lead.property || "")}`)
+                                }
+                                className="inline-flex items-center gap-1 text-[11px] text-blue-300 hover:text-blue-200"
+                              >
+                                View Property <ArrowUpRight className="w-3 h-3" />
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-xs text-slate-300">{formatDate(lead.updatedAt || lead.createdAt)}</td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end items-center gap-1">
@@ -277,7 +350,19 @@ export default function Leads() {
       </div>
 
       {logic.selectedLead && (
-        <LeadDetailsModal lead={logic.selectedLead} onClose={() => logic.setSelectedLead(null)} />
+        <LeadDetailsModal
+          lead={logic.selectedLead}
+          onClose={() => logic.setSelectedLead(null)}
+          agentName={agentMap.get(logic.selectedLead.agent)}
+          propertyName={logic.selectedLead.property ? propertyMap.get(logic.selectedLead.property) : undefined}
+          onViewAgent={() =>
+            navigate(`/avatars?focusAgentId=${encodeURIComponent(logic.selectedLead?.agent || "")}`)
+          }
+          onViewProperty={() => {
+            if (!logic.selectedLead?.property) return;
+            navigate(`/properties?focusPropertyId=${encodeURIComponent(logic.selectedLead.property)}`);
+          }}
+        />
       )}
 
       {logic.isFormOpen && (
@@ -305,7 +390,27 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
   );
 }
 
-function LeadDetailsModal({ lead, onClose }: { lead: LeadWithOwner; onClose: () => void }) {
+function LeadDetailsModal({
+  lead,
+  onClose,
+  agentName,
+  propertyName,
+  onViewAgent,
+  onViewProperty,
+}: {
+  lead: LeadWithOwner;
+  onClose: () => void;
+  agentName?: string;
+  propertyName?: string;
+  onViewAgent: () => void;
+  onViewProperty: () => void;
+}) {
+  const sortedInquiries = [...(lead.inquiries || [])].sort((a, b) => {
+    const aTime = new Date(a.timestamp || 0).getTime();
+    const bTime = new Date(b.timestamp || 0).getTime();
+    return aTime - bTime;
+  });
+
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm p-4 flex items-center justify-center">
       <div className="w-full max-w-3xl rounded-2xl border border-slate-700/60 bg-gradient-to-br from-slate-900 to-[#0d1b34] shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -334,8 +439,24 @@ function LeadDetailsModal({ lead, onClose }: { lead: LeadWithOwner; onClose: () 
             <InfoRow label="Conversion Probability" value={`${lead.conversionProbability ?? 0}%`} />
             <InfoRow label="Owner" value={lead.ownerName} />
             <InfoRow label="Session ID" value={lead.sessionId} />
-            <InfoRow label="Agent ID" value={lead.agent} />
-            <InfoRow label="Property ID" value={lead.property || "-"} />
+            <InfoRow label="Agent" value={agentName || lead.agent} />
+            <InfoRow label="Property" value={propertyName || lead.property || "-"} />
+            <div className="md:col-span-2 flex items-center gap-3">
+              <button
+                onClick={onViewAgent}
+                className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200 hover:bg-cyan-500/20"
+              >
+                View Agent <ArrowUpRight className="w-3 h-3" />
+              </button>
+              {lead.property ? (
+                <button
+                  onClick={onViewProperty}
+                  className="inline-flex items-center gap-1 rounded-lg border border-blue-500/40 bg-blue-500/10 px-3 py-2 text-xs text-blue-200 hover:bg-blue-500/20"
+                >
+                  View Property <ArrowUpRight className="w-3 h-3" />
+                </button>
+              ) : null}
+            </div>
           </Section>
 
           <Section title="Qualification">
@@ -354,6 +475,29 @@ function LeadDetailsModal({ lead, onClose }: { lead: LeadWithOwner; onClose: () 
 
           <Section title="Notes">
             <p className="text-sm text-slate-200 whitespace-pre-wrap">{lead.qualification?.notes || "No notes"}</p>
+          </Section>
+
+          <Section title="Chat History">
+            <div className="md:col-span-2 space-y-2">
+              {sortedInquiries.length === 0 ? (
+                <div className="rounded-lg border border-slate-700/60 bg-slate-900/40 px-3 py-3 text-sm text-slate-400">
+                  No chat history found for this lead.
+                </div>
+              ) : (
+                sortedInquiries.map((entry, index) => (
+                  <div key={`${entry.timestamp || index}-${index}`} className="rounded-lg border border-slate-700/60 bg-slate-900/40 px-3 py-3">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="inline-flex items-center gap-1 text-xs text-cyan-300">
+                        <MessageSquare className="w-3 h-3" />
+                        {entry.extractedIntent || "conversation"}
+                      </span>
+                      <span className="text-[11px] text-slate-500">{formatDate(entry.timestamp)}</span>
+                    </div>
+                    <p className="text-sm text-slate-200 whitespace-pre-wrap">{entry.text || "-"}</p>
+                  </div>
+                ))
+              )}
+            </div>
           </Section>
 
           <Section title="Timestamps">

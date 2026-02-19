@@ -6,6 +6,14 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 gsap.registerPlugin(ScrollTrigger);
 
+type FloatingParticleProps = {
+  delay: number;
+  duration: number;
+  initialX: number;
+  initialY: number;
+  size?: number;
+};
+
 const HumanoidSection = () => {
   const sectionRef = useRef(null);
   const cardsRef = useRef([]);
@@ -97,24 +105,26 @@ const HumanoidSection = () => {
   }, [isVisible]);
 
   // Floating particles component - Memoized for performance
-  const FloatingParticle = React.memo(({ delay, duration, initialX, initialY, size = 2 }) => (
-    <motion.div
-      className="absolute rounded-full bg-white/20"
-      style={{ width: size, height: size, willChange: "transform" }}
-      initial={{ x: initialX, y: initialY, opacity: 0 }}
-      animate={{
-        x: [initialX, initialX + 40, initialX],
-        y: [initialY, initialY - 80, initialY],
-        opacity: [0, 0.4, 0],
-      }}
-      transition={{
-        duration,
-        delay,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-    />
-  ));
+  const FloatingParticle = React.memo(
+    ({ delay, duration, initialX, initialY, size = 2 }: FloatingParticleProps) => (
+      <motion.div
+        className="absolute rounded-full bg-white/20"
+        style={{ width: size, height: size, willChange: "transform" }}
+        initial={{ x: initialX, y: initialY, opacity: 0 }}
+        animate={{
+          x: [initialX, initialX + 40, initialX],
+          y: [initialY, initialY - 80, initialY],
+          opacity: [0, 0.4, 0],
+        }}
+        transition={{
+          duration,
+          delay,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+    )
+  );
 
   const cards = [
     {
