@@ -30,35 +30,10 @@ import {
   Settings,
   BarChart3
 } from 'lucide-react';
-import { useAvatarsLogic } from '../Logics/useAvatarsLogic';
 
 export default function Avatars() {
-  const {
-    agents,
-    setAgents,
-    showCreateModal,
-    setShowCreateModal,
-    showQRModal,
-    setShowQRModal,
-    selectedAgent,
-    setSelectedAgent,
-    searchQuery,
-    setSearchQuery,
-    filterStatus,
-    setFilterStatus,
-    formData,
-    setFormData,
-    maxAgents,
-    totalAgents,
-    activeAgents,
-    totalConversations,
-    totalConversions,
-    avgConversionRate,
-    handleCreateAgent,
-    toggleAgentStatus,
-    handleShowQR,
-    filteredAgents
-  } = useAvatarsLogic();
+  // Logic removed - keeping UI only
+  // TODO: Implement useAvatarsLogic hook when needed
 
   return (
     <div className="min-h-screen   bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] p-10  ">

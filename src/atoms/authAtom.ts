@@ -1,7 +1,7 @@
 // src/atoms/authAtom.ts
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
-import { AuthState, User, AuthTokens } from '../types/auth';
+import { User, AuthTokens, AuthState } from '../types/auth';
 
 // Atom to store auth state (user and tokens) in localStorage
 export const authAtom = atomWithStorage<AuthState>('auth', {

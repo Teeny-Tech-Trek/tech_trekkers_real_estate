@@ -1,25 +1,23 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useState } from 'react';
 
-
-interface LoginFormaData {
+interface LoginFormData {
   email: string;
   password: string;
-  rememberMe: boolean;
 }
 
 export const useLoginForm = () => {
-  const [formData, setFormData] = useState<LoginFormaData>({
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
-    rememberMe: false,
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { login: authLogin } = useAuth();
+  const { login } = useAuth();
+
   const features = [
     { 
       icon: "🎭",
@@ -53,11 +51,35 @@ export const useLoginForm = () => {
     }
   ];
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Use AuthContext login method
+      await login(formData.email, formData.password);
+      
+      // If login successful, navigate to dashboard
+      // The auth context will handle state updates
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 500);
+    } catch (err: unknown) {
+      console.error('Login error:', err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Login failed. Please try again.');
+      }
+      setIsLoading(false);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: value,
+      [e.target.name]: e.target.value
     });
   };
 
@@ -69,37 +91,15 @@ export const useLoginForm = () => {
     navigate('/signup');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const { email, password, rememberMe } = formData;
-      await authLogin(email, password);
-
-      navigate('/dashboard');
-    } catch (err: unknown) {
-      console.error('Login error:', err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Login failed. Please check your credentials.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return {
     formData,
     showPassword,
-    isLoading,
-    error,
+    handleSubmit,
     handleChange,
     togglePasswordVisibility,
-    handleSubmit,
     navigateToSignup,
+    isLoading,
+    error,
     features
   };
 };

@@ -85,7 +85,9 @@ const App = () => (
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/avatars" element={<Avatars />} />
     <Route path="/properties" element={<Properties />} />
-    <Route path="/leads" element={<Leads />} />
+    <Route element={<ProtectedRoute allowedRoles={['owner', 'admin', 'member', 'agent', 'individual']} />}>
+      <Route path="/leads" element={<Leads />} />
+    </Route>
     <Route path="/analytics" element={<Analytics />} />
     <Route path="/settings" element={<Settings />} />
   </Route>

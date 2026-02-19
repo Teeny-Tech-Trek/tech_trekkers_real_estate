@@ -1,8 +1,8 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useCallback } from 'react';
-import { useAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { authAtom, setAuthAtom, setAuthLoadingAtom } from '../atoms/authAtom';
-import { AuthContextType } from '../types/auth';
+import { AuthContextType, User } from '../types/auth';
 import { signup, login, logout, refresh } from '../services/api';
 import { useToast } from '../hooks/use-toast';
 import { getCookie, eraseCookie, setCookie } from '../lib/utils'; // Import cookie utilities
@@ -17,18 +17,37 @@ export const useAuth = () => {
   return context;
 };
 
+const normalizeOrganizationId = (
+  value: string | { id?: string; _id?: string } | null | undefined
+): string | null => {
+  if (!value) return null;
+  if (typeof value === 'string') return value;
+  return value.id || value._id || null;
+};
+
+const normalizeUser = (rawUser: User): User => {
+  const normalizedId = rawUser.id || rawUser._id;
+  return {
+    ...rawUser,
+    id: normalizedId,
+    _id: normalizedId,
+    workingUnderOrganization: normalizeOrganizationId(rawUser.workingUnderOrganization),
+  };
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [auth, setAuth] = useAtom(setAuthAtom);
-  const [, setLoading] = useAtom(setAuthLoadingAtom);
-  const [state] = useAtom(authAtom);
+  const setAuth = useSetAtom(setAuthAtom);
+  const setLoading = useSetAtom(setAuthLoadingAtom);
+  const state = useAtomValue(authAtom);
   const { toast } = useToast();
 
   const handleRefreshAuth = useCallback(async () => {
     try {
       // Call refresh so server can use HttpOnly cookie if present
       const data = await refresh();
+      const normalizedUser = normalizeUser(data.user);
       // Update auth state with returned user and tokens (if provided)
-      setAuth({ user: data.user, tokens: { accessToken: data.accessToken, refreshToken: data.refreshToken || getCookie('refreshToken') || null } });
+      setAuth({ user: normalizedUser, tokens: { accessToken: data.accessToken, refreshToken: data.refreshToken || getCookie('refreshToken') || null } });
       setCookie('accessToken', data.accessToken, 7); // Update accessToken cookie if refreshed
       if (data.refreshToken) setCookie('refreshToken', data.refreshToken, 30);
       return true;
@@ -38,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuth({ user: null, tokens: null });
       return false;
     }
-  }, [setAuth, setLoading]);
+  }, [setAuth]);
 
 
   useEffect(() => {
@@ -57,6 +76,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         eraseCookie('accessToken');
         eraseCookie('refreshToken');
         setAuth({ user: null, tokens: null });
+      } else {
+        // Prevent stale localStorage auth state from keeping user "logged in"
+        setAuth({ user: null, tokens: null });
       }
       setLoading(false);
     };
@@ -71,9 +93,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       const data = await login({ email, password }); // This call also sets HttpOnly cookies
+      const normalizedUser = normalizeUser(data.user);
       setCookie('accessToken', data.accessToken, 7); // Set client-side accessToken cookie
       // refreshToken is expected to be set as HttpOnly cookie by backend.
-      setAuth({ user: data.user, tokens: { accessToken: data.accessToken, refreshToken: data.refreshToken || getCookie('refreshToken') || null } });
+      setAuth({ user: normalizedUser, tokens: { accessToken: data.accessToken, refreshToken: data.refreshToken || getCookie('refreshToken') || null } });
       toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
     } catch (error: unknown) {
       toast({
@@ -93,13 +116,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     email: string;
     company?: string;
     password: string;
+    phoneNumber?: string;
+    accountType?: 'individual' | 'organization';
   }) => {
     setLoading(true);
     try {
-      const response = await signup(data);
+      const signupPayload: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        password: string;
+        phoneNumber: string;
+        accountType: 'individual' | 'organization';
+        company?: string;
+      } = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+        phoneNumber: data.phoneNumber || '',
+        accountType: data.accountType || 'individual',
+      };
+      
+      if (data.company) {
+        signupPayload.company = data.company;
+      }
+
+      const response = await signup(signupPayload);
+      const normalizedUser = normalizeUser(response.user);
       setCookie('accessToken', response.accessToken, 7); // Set client-side accessToken cookie
       // refreshToken is expected to be set as HttpOnly cookie by backend.
-      setAuth({ user: response.user, tokens: { accessToken: response.accessToken, refreshToken: response.refreshToken || getCookie('refreshToken') || null } });
+      setAuth({ user: normalizedUser, tokens: { accessToken: response.accessToken, refreshToken: response.refreshToken || getCookie('refreshToken') || null } });
       toast({ title: 'Account created!', description: 'Welcome to Virtual Sales Platform.' });
     } catch (error: unknown) {
       toast({

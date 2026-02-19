@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import PropertyFormModal from "@/components/PropertyFormModal";
-import { usePropertiesLogic } from "@/Logics/UsePropertiesLogic";
 import { Property } from "@/types/property";
 
 const containerVariants = {
@@ -25,6 +24,9 @@ const itemVariants = {
 };
 
 const Properties: React.FC = () => {
+  // Logic removed - keeping UI only
+  // Logic removed - keeping UI only
+  // TODO: Implement usePropertiesLogic hook when needed
   const {
     properties,
     selectedProperty,
@@ -49,7 +51,31 @@ const Properties: React.FC = () => {
     prevImage,
     getRiskColor,
     getHazardColor,
-  } = usePropertiesLogic();
+  } = {
+    properties: [],
+    selectedProperty: null,
+    isModalOpen: false,
+    modalMode: 'add' as const,
+    isViewPropertyOpen: false,
+    view: 'grid' as const,
+    currentImageIndex: 0,
+    isLoading: false,
+    error: null,
+    setIsViewPropertyOpen: () => {},
+    setView: () => {},
+    setCurrentImageIndex: () => {},
+    setIsModalOpen: () => {},
+    toggleFavorite: () => {},
+    handleViewProperty: () => {},
+    openAddModal: () => {},
+    openEditModal: () => {},
+    handleSaveProperty: () => {},
+    handleDeleteProperty: () => {},
+    nextImage: () => {},
+    prevImage: () => {},
+    getRiskColor: () => 'text-gray-400',
+    getHazardColor: () => 'bg-gray-500',
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'available' | 'sold'>('all');

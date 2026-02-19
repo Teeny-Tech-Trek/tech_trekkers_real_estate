@@ -1,310 +1,422 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { Lead, Visit, getStatusColor, formatBudget, formatDate } from '../types/lead'; // Importing helper functions
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AgentLite,
+  PropertyLite,
+  TeamMemberLite,
+  leadsApiService,
+} from "@/services/leads.api";
+import { User } from "@/types/auth";
+import {
+  CreateLeadPayload,
+  Lead,
+  LeadQuality,
+  LeadStatus,
+  LeadWithOwner,
+  UpdateLeadPayload,
+} from "@/types/lead";
 
-export const useLeadsLogic = () => {
-  // --- State Variables ---
-  const mockLeads: Lead[] = [
-    {
-      id: "lead1",
-      name: "Alice Smith",
-      email: "alice.smith@example.com",
-      phone: "9876543210",
-      property: "Luxury Villa with Ocean View",
-      source: "Website",
-      score: 85,
-      status: "interested",
-      lastContact: "2024-02-10T14:30:00Z",
-      avatar: "/default-avatar.png",
-      assignedAgent: "Agent A",
-      budget: { min: 10000000, max: 15000000 },
-      timeline: "3-6 months",
-      propertyType: "villa",
-      locationPreference: ["Mumbai"],
-      bedrooms: 4,
-      bathrooms: 4,
-      purpose: "Investment",
-      notes: "Expressed strong interest in beachfront properties. Needs 4+ bedrooms.",
-      preferredContact: "email",
-      sessionId: "sess_abc123",
-    },
-    {
-      id: "lead2",
-      name: "Bob Johnson",
-      email: "bob.j@example.com",
-      phone: "8765432109",
-      property: "Spacious Apartment in Downtown",
-      source: "Referral",
-      score: 92,
-      status: "booked",
-      lastContact: "2024-02-11T09:00:00Z",
-      avatar: "/default-avatar.png",
-      assignedAgent: "Agent B",
-      budget: { min: 7000000, max: 9000000 },
-      timeline: "1-3 months",
-      propertyType: "apartment",
-      locationPreference: ["Delhi"],
-      bedrooms: 3,
-      bathrooms: 2,
-      purpose: "Residential",
-      notes: "Looking for a family-friendly apartment close to schools.",
-      preferredContact: "phone",
-      sessionId: "sess_def456",
-    },
-    {
-      id: "lead3",
-      name: "Charlie Brown",
-      email: "charlie.b@example.com",
-      phone: "7654321098",
-      property: "Modern Townhouse",
-      source: "Ad Campaign",
-      score: 60,
-      status: "new",
-      lastContact: "2024-02-12T10:00:00Z",
-      avatar: "/default-avatar.png",
-      assignedAgent: "Agent C",
-      budget: { min: 5000000, max: 7000000 },
-      timeline: "6-12 months",
-      propertyType: "townhouse",
-      locationPreference: ["Bangalore"],
-      bedrooms: 3,
-      bathrooms: 3,
-      purpose: "First Home",
-      notes: "Exploring options, interested in new constructions.",
-      preferredContact: "email",
-      sessionId: "sess_ghi789",
-    },
-  ];
+type LeadFormState = {
+  agent: string;
+  sessionId: string;
+  property: string;
+  status: LeadStatus;
+  leadQuality: LeadQuality | "auto";
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  budgetMin: string;
+  budgetMax: string;
+  notes: string;
+};
 
-  const mockVisits: Visit[] = [
-    {
-      id: "visit1",
-      leadName: "Alice Smith",
-      leadEmail: "alice.smith@example.com",
-      leadPhone: "9876543210",
-      property: "Luxury Villa with Ocean View",
-      propertyAddress: "123 Ocean Drive, Mumbai",
-      date: "2024-02-15",
-      time: "10:00 AM",
-      duration: "1 hour",
-      status: "scheduled",
-      assignedAgent: "Agent A",
-      notes: "Client wants to see the master bedroom and kitchen first.",
-      avatar: "/default-avatar.png",
-    },
-    {
-      id: "visit2",
-      leadName: "Bob Johnson",
-      leadEmail: "bob.j@example.com",
-      leadPhone: "8765432109",
-      property: "Spacious Apartment in Downtown",
-      propertyAddress: "456 City Center, Delhi",
-      date: "2024-02-13",
-      time: "02:00 PM",
-      duration: "45 minutes",
-      status: "confirmed",
-      assignedAgent: "Agent B",
-      notes: "Follow-up visit, client will bring family.",
-      avatar: "/default-avatar.png",
-    },
-  ];
+const emptyForm: LeadFormState = {
+  agent: "",
+  sessionId: "",
+  property: "",
+  status: "new",
+  leadQuality: "auto",
+  contactName: "",
+  contactEmail: "",
+  contactPhone: "",
+  budgetMin: "",
+  budgetMax: "",
+  notes: "",
+};
 
-  const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [visits, setVisits] = useState<Visit[]>(mockVisits);
-  const [activeTab, setActiveTab] = useState<string>('all');
-  const [loading, setLoading] = useState(false); // Set to false since we have mock data
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [newLead, setNewLead] = useState<Partial<Lead>>({});
-  const [isLeadDialogOpen, setIsLeadDialogOpen] = useState(false);
-  const [editingLead, setEditingLead] = useState<Lead | null>(null);
-  const [chatModalLead, setChatModalLead] = useState<Lead | null>(null);
-  const [detailsModalLead, setDetailsModalLead] = useState<Lead | null>(null);
-  const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' });
-  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
+function getLeadOwnerId(createdBy: Lead["createdBy"]): string | null {
+  if (!createdBy) return null;
+  if (typeof createdBy === "string") return createdBy;
+  return createdBy._id || null;
+}
 
-  // --- Derived States (useMemo) ---
-  const sortedLeads = useMemo(() => {
-    let sortableLeads = [...leads];
-    if (sortConfig.key) {
-      sortableLeads.sort((a, b) => {
-        const aValue = (a as any)[sortConfig.key];
-        const bValue = (b as any)[sortConfig.key];
+function getUserId(user: User | null): string | null {
+  if (!user) return null;
+  return user.id || user._id || null;
+}
 
-        if (aValue === undefined || aValue === null) return sortConfig.direction === 'asc' ? 1 : -1;
-        if (bValue === undefined || bValue === null) return sortConfig.direction === 'asc' ? -1 : 1;
+function isValidObjectId(value: string): boolean {
+  return /^[a-fA-F0-9]{24}$/.test(value);
+}
 
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return sortConfig.direction === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-        }
-        if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
-        }
-        // Fallback for other types or complex objects like budget
-        return 0;
+export function useLeadsLogic() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [availableAgents, setAvailableAgents] = useState<AgentLite[]>([]);
+  const [availableProperties, setAvailableProperties] = useState<PropertyLite[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">("all");
+  const [qualityFilter, setQualityFilter] = useState<"all" | "cold" | "warm" | "hot" | "very_hot">("all");
+
+  const [selectedLead, setSelectedLead] = useState<LeadWithOwner | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [editingLeadId, setEditingLeadId] = useState<string | null>(null);
+  const [form, setForm] = useState<LeadFormState>(emptyForm);
+
+  const isOwnerOrAdmin = useMemo(
+    () =>
+      !!user &&
+      (user.role === "owner" || user.role === "admin") &&
+      (user.accountType === "organization" || !!user.workingUnderOrganization),
+    [user]
+  );
+  const currentUserId = useMemo(() => getUserId(user), [user]);
+
+  const loadLeads = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [leadResult, teamResult, agentResult, propertyResult] = await Promise.allSettled([
+        leadsApiService.getLeads(),
+        isOwnerOrAdmin ? leadsApiService.getOrganizationTeamMembers() : Promise.resolve([] as TeamMemberLite[]),
+        leadsApiService.getAvailableAgents(),
+        leadsApiService.getAvailableProperties(),
+      ]);
+
+      if (leadResult.status === "rejected") {
+        throw leadResult.reason;
+      }
+
+      const leadData = leadResult.value;
+      const teamMembers = teamResult.status === "fulfilled" ? teamResult.value : [];
+      const agents = agentResult.status === "fulfilled" ? agentResult.value : [];
+      const properties = propertyResult.status === "fulfilled" ? propertyResult.value : [];
+
+      setAvailableAgents(agents);
+      setAvailableProperties(properties);
+
+      const ownerMap = new Map<string, { name: string; email: string }>();
+      if (currentUserId) {
+        ownerMap.set(currentUserId, {
+          name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "You",
+          email: user.email,
+        });
+      }
+      teamMembers.forEach((member) => {
+        ownerMap.set(member.user._id, {
+          name: `${member.user.firstName} ${member.user.lastName}`.trim() || "Team Member",
+          email: member.user.email,
+        });
       });
+
+      const normalized = leadData.map((lead) => {
+        const ownerId = getLeadOwnerId(lead.createdBy);
+        const owner = ownerId ? ownerMap.get(ownerId) : undefined;
+        const createdByFromApi = typeof lead.createdBy === "object" ? lead.createdBy : undefined;
+        const fallbackName =
+          `${createdByFromApi?.firstName || ""} ${createdByFromApi?.lastName || ""}`.trim() || "Unknown";
+        const fallbackEmail = createdByFromApi?.email;
+        return {
+          ...lead,
+          ownerName: owner?.name || fallbackName,
+          ownerEmail: owner?.email || fallbackEmail,
+          isMine: !!ownerId && !!currentUserId && ownerId === currentUserId,
+        } satisfies LeadWithOwner;
+      });
+
+      setLeads(normalized);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to load leads";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    return sortableLeads;
-  }, [leads, sortConfig]);
+  }, [currentUserId, isOwnerOrAdmin, toast, user]);
+
+  useEffect(() => {
+    loadLeads();
+  }, [loadLeads]);
 
   const filteredLeads = useMemo(() => {
-    return sortedLeads.filter(lead => {
-      const matchesSearch =
-        lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lead.property.toLowerCase().includes(searchQuery.toLowerCase());
+    const query = search.trim().toLowerCase();
+    return (leads as LeadWithOwner[]).filter((lead) => {
+      const name = lead.qualification?.contactInfo?.name?.toLowerCase() || "";
+      const email = lead.qualification?.contactInfo?.email?.toLowerCase() || "";
+      const phone = lead.qualification?.contactInfo?.phone?.toLowerCase() || "";
+      const sessionId = lead.sessionId?.toLowerCase() || "";
+      const ownerName = lead.ownerName.toLowerCase();
 
-      const matchesTab = () => {
-        switch (activeTab) {
-          case 'all': return true;
-          case 'hot': return lead.score >= 80;
-          case 'new': return lead.status === 'new';
-          case 'booked': return lead.status === 'booked';
-          case 'interested': return lead.status === 'interested';
-          case 'with_visits': return visits.some(visit => visit.leadEmail === lead.email && visit.status === 'confirmed');
-          default: return true;
-        }
-      };
-      return matchesSearch && matchesTab();
+      const matchesSearch =
+        !query ||
+        name.includes(query) ||
+        email.includes(query) ||
+        phone.includes(query) ||
+        sessionId.includes(query) ||
+        ownerName.includes(query);
+      const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
+      const matchesQuality = qualityFilter === "all" || lead.leadQuality === qualityFilter;
+
+      return matchesSearch && matchesStatus && matchesQuality;
     });
-  }, [sortedLeads, searchQuery, activeTab, visits]);
+  }, [leads, qualityFilter, search, statusFilter]);
 
   const stats = useMemo(() => {
     const total = leads.length;
-    const hot = leads.filter(lead => lead.score >= 80).length;
-    const newLeads = leads.filter(lead => lead.status === 'new').length;
-    const booked = leads.filter(lead => lead.status === 'booked').length;
-    const interested = leads.filter(lead => lead.status === 'interested').length;
-    const highValue = leads.filter(lead => (lead.budget?.max || 0) >= 10000000).length; // Example: properties over 10M
-    const withVisits = leads.filter(lead => visits.some(visit => visit.leadEmail === lead.email)).length;
+    const hot = leads.filter((l) => l.leadQuality === "hot" || l.leadQuality === "very_hot").length;
+    const newLeads = leads.filter((l) => l.status === "new").length;
+    const closed = leads.filter((l) => l.status === "closed").length;
+    const mine = (leads as LeadWithOwner[]).filter((l) => l.isMine).length;
+    return { total, hot, newLeads, closed, mine };
+  }, [leads]);
 
-    return { total, hot, new: newLeads, booked, interested, highValue, withVisits };
-  }, [leads, visits]);
+  const canManageLead = useCallback(
+    (lead: LeadWithOwner) => {
+      if (isOwnerOrAdmin) return true;
+      return lead.isMine;
+    },
+    [isOwnerOrAdmin]
+  );
 
-  // --- Functions (useCallback) ---
-  const handleSort = useCallback((key: string) => {
-    setSortConfig(prevConfig => {
-      if (prevConfig.key === key) {
-        return { ...prevConfig, direction: prevConfig.direction === 'asc' ? 'desc' : 'asc' };
-      }
-      return { key, direction: 'asc' };
+  const canDeleteLead = canManageLead;
+
+  const openCreateModal = useCallback(() => {
+    setFormMode("create");
+    setEditingLeadId(null);
+    setForm({ ...emptyForm, agent: availableAgents[0]?._id || "" });
+    setIsFormOpen(true);
+  }, [availableAgents]);
+
+  const openEditModal = useCallback((lead: LeadWithOwner) => {
+    setFormMode("edit");
+    setEditingLeadId(lead._id);
+    setForm({
+      agent: lead.agent || "",
+      sessionId: lead.sessionId || "",
+      property: lead.property || "",
+      status: lead.status,
+      leadQuality: lead.leadQuality || "auto",
+      contactName: lead.qualification?.contactInfo?.name || "",
+      contactEmail: lead.qualification?.contactInfo?.email || "",
+      contactPhone: lead.qualification?.contactInfo?.phone || "",
+      budgetMin: lead.qualification?.budget?.min ? String(lead.qualification.budget.min) : "",
+      budgetMax: lead.qualification?.budget?.max ? String(lead.qualification.budget.max) : "",
+      notes: lead.qualification?.notes || "",
     });
+    setIsFormOpen(true);
   }, []);
 
-  const handleCreateLead = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Create Lead:', newLead);
-    setLeads(prev => [...prev, { ...newLead, id: String(Date.now()), status: newLead.status || 'new', avatar: '/default-avatar.png', source: 'Manual', lastContact: new Date().toISOString(), assignedAgent: 'Unassigned', score: newLead.score || 0 } as Lead]);
-    setNewLead({});
-    setIsLeadDialogOpen(false);
-  }, [newLead, setLeads, setNewLead, setIsLeadDialogOpen]);
+  const buildPayload = useCallback((): CreateLeadPayload => {
+    const payload: CreateLeadPayload = {
+      agent: form.agent.trim(),
+      sessionId: form.sessionId.trim(),
+      status: form.status,
+    };
 
-  const handleUpdateLead = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingLead) return;
-    console.log('Update Lead:', newLead);
-    setLeads(prev => prev.map(lead => (lead.id === editingLead.id ? { ...lead, ...newLead } as Lead : lead)));
-    setEditingLead(null);
-    setNewLead({});
-    setIsLeadDialogOpen(false);
-  }, [editingLead, newLead, setLeads, setEditingLead, setNewLead, setIsLeadDialogOpen]);
+    if (form.property.trim()) payload.property = form.property.trim();
+    if (form.leadQuality !== "auto") payload.leadQuality = form.leadQuality;
 
-  const handleDeleteLead = useCallback((id: string) => {
-    console.log('Delete Lead:', id);
-    setLeads(prev => prev.filter(lead => lead.id !== id));
-  }, [setLeads]);
-
-  const handleExport = useCallback(() => {
-    console.log('Exporting leads...');
-    // Implement export logic here, e.g., to CSV
-    alert('Export functionality coming soon!');
-  }, []);
-
-  const toggleSelectLead = useCallback((id: string) => {
-    setSelectedLeads(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const toggleSelectAll = useCallback(() => {
-    if (selectedLeads.size === filteredLeads.length) {
-      setSelectedLeads(new Set());
-    } else {
-      setSelectedLeads(new Set(filteredLeads.map(lead => lead.id as string)));
+    const qualification: NonNullable<CreateLeadPayload["qualification"]> = {};
+    if (form.contactName.trim() || form.contactEmail.trim() || form.contactPhone.trim()) {
+      qualification.contactInfo = {};
+      if (form.contactName.trim()) qualification.contactInfo.name = form.contactName.trim();
+      if (form.contactEmail.trim()) qualification.contactInfo.email = form.contactEmail.trim();
+      if (form.contactPhone.trim()) qualification.contactInfo.phone = form.contactPhone.trim();
     }
-  }, [selectedLeads, filteredLeads]);
 
-  const getVisitCount = useCallback((leadEmail: string) => {
-    return visits.filter(visit => visit.leadEmail === leadEmail).length;
-  }, [visits]);
+    if (form.budgetMin.trim() || form.budgetMax.trim()) {
+      qualification.budget = {};
+      if (form.budgetMin.trim()) qualification.budget.min = Number(form.budgetMin);
+      if (form.budgetMax.trim()) qualification.budget.max = Number(form.budgetMax);
+    }
 
-  // --- Initial Data Loading (Example using useEffect) ---
-  // In a real application, you would fetch data here
-  // useEffect(() => {
-  //   const fetchLeadsAndVisits = async () => {
-  //     try {
-  //       setLoading(true);
-  //       // Simulate API call
-  //       await new Promise(resolve => setTimeout(resolve, 1000));
-  //       const mockLeads: Lead[] = []; // Your mock data or fetched data
-  //       const mockVisits: Visit[] = []; // Your mock data or fetched data
-  //       setLeads(mockLeads);
-  //       setVisits(mockVisits);
-  //     } catch (err: any) {
-  //       setError(err.message);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchLeadsAndVisits();
-  // }, []);
+    if (form.notes.trim()) qualification.notes = form.notes.trim();
+    if (Object.keys(qualification).length > 0) payload.qualification = qualification;
 
+    return payload;
+  }, [form]);
+
+  const submitForm = useCallback(async () => {
+    const payload = buildPayload();
+
+    if (!payload.agent || !payload.sessionId) {
+      toast({
+        title: "Missing required fields",
+        description: "Agent ID and Session ID are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (availableAgents.length === 0) {
+      toast({
+        title: "No agents available",
+        description: "Create an agent first, then create a lead.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isValidObjectId(payload.agent)) {
+      toast({
+        title: "Invalid Agent ID",
+        description: "Please select a valid agent.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (payload.property && !isValidObjectId(payload.property)) {
+      toast({
+        title: "Invalid Property ID",
+        description: "Please select a valid property or leave property empty.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (
+      payload.qualification?.budget?.min !== undefined &&
+      payload.qualification?.budget?.max !== undefined &&
+      payload.qualification.budget.min > payload.qualification.budget.max
+    ) {
+      toast({
+        title: "Invalid budget",
+        description: "Budget minimum cannot be greater than budget maximum.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (formMode === "create") {
+        await leadsApiService.createLead(payload);
+        toast({ title: "Lead created", description: "New lead added successfully." });
+      } else if (editingLeadId) {
+        const updatePayload: UpdateLeadPayload = payload;
+        await leadsApiService.updateLead(editingLeadId, updatePayload);
+        toast({ title: "Lead updated", description: "Lead updated successfully." });
+      }
+
+      setIsFormOpen(false);
+      setForm(emptyForm);
+      setEditingLeadId(null);
+      await loadLeads();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to save lead";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  }, [availableAgents.length, buildPayload, editingLeadId, formMode, loadLeads, toast]);
+
+  const updateLeadStatus = useCallback(
+    async (leadId: string, status: LeadStatus) => {
+      const lead = (leads as LeadWithOwner[]).find((item) => item._id === leadId);
+      if (!lead || !canManageLead(lead)) {
+        toast({
+          title: "Access denied",
+          description: "You do not have permission to update this lead.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const previousStatus = lead.status;
+      setLeads((prev) => prev.map((item) => (item._id === leadId ? { ...item, status } : item)));
+      try {
+        await leadsApiService.updateLead(leadId, { status });
+        toast({ title: "Status updated", description: `Lead moved to ${status}.` });
+      } catch (err: unknown) {
+        setLeads((prev) => prev.map((item) => (item._id === leadId ? { ...item, status: previousStatus } : item)));
+        const message = err instanceof Error ? err.message : "Failed to update status";
+        toast({ title: "Error", description: message, variant: "destructive" });
+      }
+    },
+    [canManageLead, leads, toast]
+  );
+
+  const deleteLead = useCallback(
+    async (leadId: string) => {
+      const lead = (leads as LeadWithOwner[]).find((item) => item._id === leadId);
+      if (!lead || !canDeleteLead(lead)) {
+        toast({
+          title: "Access denied",
+          description: "You do not have permission to delete this lead.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const confirmed = window.confirm("Delete this lead permanently?");
+      if (!confirmed) return;
+
+      setDeletingLeadId(leadId);
+      try {
+        await leadsApiService.deleteLead(leadId);
+        setLeads((prev) => prev.filter((lead) => lead._id !== leadId));
+        toast({ title: "Lead deleted", description: "Lead removed successfully." });
+        if (selectedLead?._id === leadId) {
+          setSelectedLead(null);
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Failed to delete lead";
+        toast({ title: "Error", description: message, variant: "destructive" });
+      } finally {
+        setDeletingLeadId(null);
+      }
+    },
+    [canDeleteLead, leads, selectedLead, toast]
+  );
 
   return {
-    activeTab,
-    setActiveTab,
-    leads,
-    setLeads,
-    visits,
-    setVisits,
+    user,
     loading,
-    setLoading,
-    error,
-    setError,
-    searchQuery,
-    setSearchQuery,
-    newLead,
-    setNewLead,
-    isLeadDialogOpen,
-    setIsLeadDialogOpen,
-    editingLead,
-    setEditingLead,
-    chatModalLead,
-    setChatModalLead,
-    detailsModalLead,
-    setDetailsModalLead,
-    sortConfig,
-    setSortConfig,
-    selectedLeads,
-    setSelectedLeads,
-    sortedLeads,
-    filteredLeads,
+    submitting,
+    deletingLeadId,
+    isOwnerOrAdmin,
+    search,
+    setSearch,
+    statusFilter,
+    setStatusFilter,
+    qualityFilter,
+    setQualityFilter,
+    leads: filteredLeads as LeadWithOwner[],
+    totalLeads: leads.length,
     stats,
-    handleSort,
-    handleCreateLead,
-    handleUpdateLead,
-    handleDeleteLead,
-    handleExport,
-    toggleSelectLead,
-    toggleSelectAll,
-    getStatusColor,
-    formatBudget,
-    formatDate,
-    getVisitCount,
+    selectedLead,
+    setSelectedLead,
+    isFormOpen,
+    setIsFormOpen,
+    formMode,
+    form,
+    setForm,
+    availableAgents,
+    availableProperties,
+    loadLeads,
+    openCreateModal,
+    openEditModal,
+    submitForm,
+    updateLeadStatus,
+    deleteLead,
+    canManageLead,
+    canDeleteLead,
   };
-};
+}

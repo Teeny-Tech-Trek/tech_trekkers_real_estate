@@ -1,4 +1,6 @@
 import React from 'react';
+import { LucideIcon } from "lucide-react";
+
 import { 
   UserPlus, 
   Building2, 
@@ -13,6 +15,7 @@ import {
   Phone,
   Award
 } from 'lucide-react';
+
 import {
   LineChart,
   Line,
@@ -23,6 +26,18 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+
+
+
+interface KPICardProps {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  change: string;
+  trend: "up" | "down";
+  iconColor: "cyan" | "blue" | "purple" | "green" | "emerald";
+}
+
 
 // Mock data
 const leadsData = [
@@ -39,19 +54,19 @@ const leadsData = [
   { date: 'Feb 10', newLeads: 75, closed: 30 },
 ];
 
-const topAgents = [
-  { id: 1, name: 'Sarah Chen', conversions: 48, revenue: 2840000, avatar: 'SC', trend: 12 },
-  { id: 2, name: 'Marcus Williams', conversions: 42, revenue: 2560000, avatar: 'MW', trend: 8 },
-  { id: 3, name: 'Emily Rodriguez', conversions: 38, revenue: 2180000, avatar: 'ER', trend: -3 },
-  { id: 4, name: 'David Kumar', conversions: 35, revenue: 2020000, avatar: 'DK', trend: 15 },
+const recentActivities = [
+  { id: 1, icon: UserPlus, title: 'New lead from John Smith', time: '5 mins ago', color: 'cyan' },
+  { id: 2, icon: Phone, title: 'Call with Sarah Johnson', time: '15 mins ago', color: 'blue' },
+  { id: 3, icon: Building2, title: 'Property uploaded - Downtown Loft', time: '32 mins ago', color: 'purple' },
+  { id: 4, icon: CheckCircle2, title: 'Deal closed - $520,000', time: '1 hour ago', color: 'green' },
+  { id: 5, icon: MessageSquare, title: 'New message from Michael Brown', time: '2 hours ago', color: 'cyan' },
 ];
 
-const recentActivities = [
-  { id: 1, type: 'lead', title: 'New lead from website', time: '5 min ago', icon: UserPlus, color: 'cyan' },
-  { id: 2, type: 'visit', title: 'Property visit scheduled - Marina Bay', time: '12 min ago', icon: Calendar, color: 'blue' },
-  { id: 3, type: 'chat', title: 'Chat conversation with John Doe', time: '23 min ago', icon: MessageSquare, color: 'purple' },
-  { id: 4, type: 'deal', title: 'Deal closed - $850,000', time: '1 hr ago', icon: CheckCircle2, color: 'green' },
-  { id: 5, type: 'call', title: 'Scheduled call with prospect', time: '2 hrs ago', icon: Phone, color: 'cyan' },
+const topAgents = [
+  { id: 1, name: 'Alice Chen', avatar: 'AC', conversions: 48, revenue: 4200000, trend: 12 },
+  { id: 2, name: 'Bob Wilson', avatar: 'BW', conversions: 42, revenue: 3800000, trend: 8 },
+  { id: 3, name: 'Carol Martinez', avatar: 'CM', conversions: 38, revenue: 3200000, trend: -3 },
+  { id: 4, name: 'David Kumar', avatar: 'DK', conversions: 35, revenue: 2900000, trend: 5 },
 ];
 
 const Dashboard = () => {
@@ -62,28 +77,12 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="min-h-screen   bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] p-10 ">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] p-10">
       <div className="max-w-[1920px] mx-auto">
-        {/* Welcome Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-1">
-                Welcome back, Alex Morgan
-              </h1>
-              <p className="text-slate-400">
-                Here's your real estate performance overview
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="text-cyan-400 text-sm font-medium">{currentDate}</div>
-              <div className="text-slate-500 text-xs">Updated in real-time</div>
-            </div>
-          </div>
-        </div>
 
         {/* KPI Metrics Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+
           <KPICard
             icon={UserPlus}
             label="Total Leads"
@@ -92,6 +91,7 @@ const Dashboard = () => {
             trend="up"
             iconColor="cyan"
           />
+
           <KPICard
             icon={Building2}
             label="Properties Listed"
@@ -100,6 +100,7 @@ const Dashboard = () => {
             trend="up"
             iconColor="blue"
           />
+
           <KPICard
             icon={Calendar}
             label="Scheduled Visits"
@@ -108,6 +109,7 @@ const Dashboard = () => {
             trend="up"
             iconColor="purple"
           />
+
           <KPICard
             icon={MessageSquare}
             label="Conversations"
@@ -116,6 +118,7 @@ const Dashboard = () => {
             trend="up"
             iconColor="green"
           />
+
           <KPICard
             icon={Target}
             label="Conversion Rate"
@@ -124,6 +127,7 @@ const Dashboard = () => {
             trend="down"
             iconColor="emerald"
           />
+
         </div>
 
         {/* Main Grid Layout */}

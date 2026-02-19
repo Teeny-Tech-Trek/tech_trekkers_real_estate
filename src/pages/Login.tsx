@@ -9,8 +9,8 @@ const Login = () => {
     handleSubmit,
     handleChange,
     togglePasswordVisibility,
-    navigateToSignup, // Now available from the hook
-    features, 
+    navigateToSignup,
+    features,
   } = useLoginForm();
 
   return (

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signup } from '../services/api'; // Import the signup API function
+import { useAuth } from '../contexts/AuthContext';
 
 interface SignupFormData {
   firstName: string;
@@ -8,7 +8,7 @@ interface SignupFormData {
   email: string;
   companyName: string;
   phoneNumber: string;
-  accountType: string;
+  accountType: 'individual' | 'organization' | '';
   password: string;
 }
 
@@ -23,9 +23,11 @@ export const useSignupForm = () => {
     accountType: '',
     password: ''
   });
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
-  const [error, setError] = useState<string | null>(null); // Add error state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { signup } = useAuth();
+
   const features = [
     { 
       icon: "🎭",
@@ -59,40 +61,33 @@ export const useSignupForm = () => {
     }
   ];
 
-interface SignupPayload {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  phoneNumber: string;
-  accountType: string;
-  company?: string;
-}
-
-// ...
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null); // Clear previous errors
+    setError(null);
     try {
-      // Assuming the signup API might expect 'company' instead of 'companyName'
-      const payload: SignupPayload = {
+      const accountType = (formData.accountType === 'individual' || formData.accountType === 'organization') 
+        ? formData.accountType 
+        : 'individual';
+
+      const payload = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
         phoneNumber: formData.phoneNumber,
-        accountType: formData.accountType,
+        accountType: accountType,
+        company: formData.accountType === 'organization' ? formData.companyName : undefined,
       };
 
-      if (formData.accountType === 'organization') {
-        payload.company = formData.companyName;
-      }
+      // Use AuthContext signup method
+      await signup(payload);
 
-      const { user } = await signup(payload);
-      console.log('Signup successful:', user);
-      navigate('/login'); // Redirect to login on success
+      // If signup successful, navigate to dashboard
+      // The auth context will handle state updates
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 500);
     } catch (err: unknown) {
       console.error('Signup error:', err);
       if (err instanceof Error) {
@@ -100,7 +95,6 @@ interface SignupPayload {
       } else {
         setError('Signup failed. Please try again.');
       }
-    } finally {
       setIsLoading(false);
     }
   };
@@ -127,8 +121,8 @@ interface SignupPayload {
     handleChange,
     togglePasswordVisibility,
     navigateToLogin,
-    isLoading, // Expose isLoading
-    error, // Expose error
+    isLoading,
+    error,
     features
   };
 };
