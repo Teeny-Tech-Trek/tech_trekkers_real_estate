@@ -1,159 +1,101 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { Property } from '../types/property';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { Property, PropertyMutationPayload } from '@/types/property';
+import propertyService from '@/services/property.service';
+
+type ModalMode = 'add' | 'edit';
+type ViewMode = 'grid' | 'analytics';
+
+const toMutationPayload = (property: Property): PropertyMutationPayload => ({
+  title: property.title || '',
+  price: Number(property.price) || 0,
+  location: property.location || '',
+  address: property.address || '',
+  bedrooms: Number(property.bedrooms) || 0,
+  bathrooms: Number(property.bathrooms) || 0,
+  area: Number(property.area) || 0,
+  areaUnit: property.areaUnit || 'sq ft',
+  status: property.status || 'draft',
+  type: property.type || 'single_family',
+  yearBuilt: Number(property.yearBuilt) || new Date().getFullYear(),
+  images: Array.isArray(property.images) ? property.images : [],
+  description: property.description || '',
+  leads: Number(property.leads) || 0,
+  views: Number(property.views) || 0,
+  favorite: Boolean(property.favorite),
+  analytics: {
+    riskScore: Number(property.analytics?.riskScore) || 0,
+    investmentPotential: Number(property.analytics?.investmentPotential) || 0,
+    rentalYield: Number(property.analytics?.rentalYield) || 0,
+    appreciation: Number(property.analytics?.appreciation) || 0,
+    demandScore: Number(property.analytics?.demandScore) || 0,
+    marketValue: Number(property.analytics?.marketValue) || 0,
+    pricePerSqFt: Number(property.analytics?.pricePerSqFt) || 0,
+  },
+  hazards: Array.isArray(property.hazards) ? property.hazards : [],
+  amenities: {
+    transit: property.amenities?.transit || [],
+    education: property.amenities?.education || [],
+    shopping: property.amenities?.shopping || [],
+    parks: property.amenities?.parks || [],
+    healthcare: property.amenities?.healthcare || [],
+    other: property.amenities?.other || [],
+  },
+});
 
 export const usePropertiesLogic = () => {
-const mockProperties: Property[] = [
-  {
-    _id: "prop1",
-    title: "Luxury Villa with Ocean View",
-    price: 15000000,
-    location: "Mumbai, Maharashtra",
-    address: "123 Ocean Drive",
-    bedrooms: 4,
-    bathrooms: 4,
-    area: 4500,
-    areaUnit: "sqft",
-    status: "available",
-    type: "single_family",
-    yearBuilt: 2020,
-    images: ["/hero-image.jpg", "/background-section1.png"], // Using existing images for simplicity
-    description: "A stunning luxury villa with panoramic ocean views...",
-    leads: 50,
-    views: 500,
-    favorite: false,
-    createdAt: "2023-01-15T10:00:00Z",
-    analytics: {
-      riskScore: 30,
-      investmentPotential: 90,
-      rentalYield: 8,
-      appreciation: 15,
-      demandScore: 85,
-      marketValue: 16000000,
-      pricePerSqFt: 3555,
-    },
-    hazards: { type: "none", level: "very_low", description: "No known hazards" },
-    demographics: {
-      averageAge: 35,
-      averageIncome: "200k+",
-      familyRatio: 0.7,
-      education: "high",
-      populationDensity: "medium",
-    },
-    amenities: {
-      transit: ["metro", "bus"],
-      education: ["international school"],
-      shopping: ["luxury mall"],
-      parks: ["beach park"],
-      healthcare: ["hospital"],
-      other: [],
-    },
-    marketInsights: {
-      daysOnMarket: 60,
-      pricePerSqFt: 3500,
-      comparableSales: 10,
-      marketTrend: "upward",
-      avgDaysOnMarket: 75,
-    },
-    financials: {
-      monthlyRent: 80000,
-      propertyTax: 10000,
-      insurance: 5000,
-      maintenance: 2000,
-      hoa: 1000,
-    },
-    ownerInfo: {
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "123-456-7890",
-      since: "2022-05-01",
-    },
-  },
-  {
-    _id: "prop2",
-    title: "Spacious Apartment in Downtown",
-    price: 8500000,
-    location: "Delhi, Delhi",
-    address: "456 City Center",
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 1800,
-    areaUnit: "sqft",
-    status: "sold",
-    type: "apartment",
-    yearBuilt: 2018,
-    images: ["/background-section2.png", "/background-section3.png"],
-    description: "Modern apartment in the heart of the city, close to all amenities...",
-    leads: 120,
-    views: 1200,
-    favorite: true,
-    createdAt: "2022-11-01T11:30:00Z",
-    analytics: {
-      riskScore: 15,
-      investmentPotential: 75,
-      rentalYield: 6,
-      appreciation: 10,
-      demandScore: 90,
-      marketValue: 9000000,
-      pricePerSqFt: 5000,
-    },
-    hazards: { type: "none", level: "very_low", description: "No known hazards" },
-    demographics: {
-      averageAge: 28,
-      averageIncome: "150k+",
-      familyRatio: 0.5,
-      education: "high",
-      populationDensity: "high",
-    },
-    amenities: {
-      transit: ["metro", "bus", "rail"],
-      education: ["university"],
-      shopping: ["mall", "supermarket"],
-      parks: ["city park"],
-      healthcare: ["clinic"],
-      other: [],
-    },
-    marketInsights: {
-      daysOnMarket: 30,
-      pricePerSqFt: 4800,
-      comparableSales: 25,
-      marketTrend: "stable",
-      avgDaysOnMarket: 45,
-    },
-    financials: {
-      monthlyRent: 45000,
-      propertyTax: 6000,
-      insurance: 3000,
-      maintenance: 1500,
-      hoa: 800,
-    },
-    ownerInfo: {
-      name: "Jane Smith",
-      email: "jane@example.com",
-      phone: "987-654-3210",
-      since: "2021-08-10",
-    },
-  },
-];
-
-  const [properties, setProperties] = useState<Property[]>(mockProperties);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+  const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [isViewPropertyOpen, setIsViewPropertyOpen] = useState(false);
-  const [view, setView] = useState<'grid' | 'analytics'>('grid');
+  const [view, setView] = useState<ViewMode>('grid');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(false); // Set to false since we have mock data
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const submitLockRef = useRef(false);
 
-  // Placeholder functions and derived states for now
-  const toggleFavorite = useCallback((id: string) => {
-    console.log(`Toggle favorite for ${id}`);
+  const fetchProperties = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await propertyService.getProperties();
+      setProperties(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load properties');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void fetchProperties();
+  }, [fetchProperties]);
+
+  const toggleFavorite = useCallback(async (id: string) => {
+    const previous = properties;
+    setProperties((current) =>
+      current.map((item) =>
+        item._id === id ? { ...item, favorite: !item.favorite } : item
+      )
+    );
+
+    try {
+      const updated = await propertyService.togglePropertyFavorite(id);
+      setProperties((current) =>
+        current.map((item) => (item._id === id ? updated : item))
+      );
+    } catch (err) {
+      setProperties(previous);
+      setError(err instanceof Error ? err.message : 'Failed to update favorite');
+    }
+  }, [properties]);
 
   const handleViewProperty = useCallback((property: Property) => {
     setSelectedProperty(property);
-    setIsViewPropertyOpen(true);
     setCurrentImageIndex(0);
+    setIsViewPropertyOpen(true);
   }, []);
 
   const openAddModal = useCallback(() => {
@@ -168,68 +110,110 @@ const mockProperties: Property[] = [
     setIsModalOpen(true);
   }, []);
 
-  const handleSaveProperty = useCallback((property: Property) => {
-    console.log('Save property:', property);
-    setIsModalOpen(false);
-  }, []);
+  const handleSaveProperty = useCallback(
+    async (propertyData: Property, files: File[], deletedImages: string[]) => {
+      if (submitLockRef.current) return;
+      try {
+        submitLockRef.current = true;
+        setIsSaving(true);
+        setUploadProgress(0);
+        setError(null);
+        const payload = toMutationPayload(propertyData);
 
-  const handleDeleteProperty = useCallback((id: string) => {
-    console.log('Delete property:', id);
-  }, []);
+        if (modalMode === 'add') {
+          const created = await propertyService.createProperty(payload, files, setUploadProgress);
+          setProperties((current) => [created, ...current]);
+        } else if (selectedProperty?._id) {
+          const updated = await propertyService.updateProperty(
+            selectedProperty._id,
+            payload,
+            files,
+            deletedImages || [],
+            setUploadProgress
+          );
+          setProperties((current) =>
+            current.map((item) => (item._id === updated._id ? updated : item))
+          );
+          setSelectedProperty(updated);
+        }
+
+        setIsModalOpen(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to save property');
+      } finally {
+        setIsSaving(false);
+        setUploadProgress(0);
+        submitLockRef.current = false;
+      }
+    },
+    [modalMode, selectedProperty]
+  );
+
+  const handleDeleteProperty = useCallback(async (id: string) => {
+    const confirmed = window.confirm('Delete this property? This action cannot be undone.');
+    if (!confirmed) return;
+
+    try {
+      setError(null);
+      await propertyService.deleteProperty(id);
+      setProperties((current) => current.filter((item) => item._id !== id));
+      if (selectedProperty?._id === id) {
+        setSelectedProperty(null);
+        setIsViewPropertyOpen(false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete property');
+    }
+  }, [selectedProperty]);
 
   const nextImage = useCallback(() => {
-    if (selectedProperty && selectedProperty.images) {
-      setCurrentImageIndex((prevIndex) =>
-        (prevIndex + 1) % selectedProperty.images.length
-      );
-    }
+    const imageCount =
+      selectedProperty?.imageVariants?.length || selectedProperty?.images?.length || 0;
+    if (!imageCount) return;
+    setCurrentImageIndex((prev) => (prev + 1) % imageCount);
   }, [selectedProperty]);
 
   const prevImage = useCallback(() => {
-    if (selectedProperty && selectedProperty.images) {
-      setCurrentImageIndex((prevIndex) =>
-        (prevIndex - 1 + selectedProperty.images.length) % selectedProperty.images.length
-      );
-    }
+    const imageCount =
+      selectedProperty?.imageVariants?.length || selectedProperty?.images?.length || 0;
+    if (!imageCount) return;
+    setCurrentImageIndex((prev) =>
+      (prev - 1 + imageCount) % imageCount
+    );
   }, [selectedProperty]);
 
-  const getRiskColor = useCallback((riskScore: number) => {
-    if (riskScore > 75) return 'text-red-400';
-    if (riskScore > 50) return 'text-orange-400';
-    return 'text-green-400';
-  }, []);
-
-  const getHazardColor = useCallback((level: string) => {
-    switch (level) {
-      case 'very_high': return 'bg-red-500';
-      case 'high': return 'bg-orange-500';
-      case 'medium': return 'bg-yellow-500';
-      case 'low': return 'bg-green-500';
-      case 'very_low': return 'bg-blue-500';
-      default: return 'bg-gray-500';
-    }
-  }, []);
-
+  const stats = useMemo(() => {
+    const total = properties.length;
+    const available = properties.filter((p) => p.status === 'available').length;
+    const sold = properties.filter((p) => p.status === 'sold').length;
+    const totalLeads = properties.reduce((sum, p) => sum + (p.leads || 0), 0);
+    const averageRisk =
+      total > 0
+        ? Math.round(
+            properties.reduce((sum, p) => sum + (p.analytics?.riskScore || 0), 0) / total
+          )
+        : 0;
+    return { total, available, sold, totalLeads, averageRisk };
+  }, [properties]);
 
   return {
     properties,
     setProperties,
     selectedProperty,
-    setSelectedProperty,
     isModalOpen,
-    setIsModalOpen,
     modalMode,
-    setModalMode, // Added setModalMode
     isViewPropertyOpen,
-    setIsViewPropertyOpen,
     view,
-    setView,
     currentImageIndex,
-    setCurrentImageIndex,
     isLoading,
-    setIsLoading,
+    isSaving,
+    uploadProgress,
     error,
-    setError,
+    stats,
+    setIsViewPropertyOpen,
+    setView,
+    setCurrentImageIndex,
+    setIsModalOpen,
     toggleFavorite,
     handleViewProperty,
     openAddModal,
@@ -238,7 +222,6 @@ const mockProperties: Property[] = [
     handleDeleteProperty,
     nextImage,
     prevImage,
-    getRiskColor,
-    getHazardColor,
+    fetchProperties,
   };
 };

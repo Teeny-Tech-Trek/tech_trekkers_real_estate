@@ -48,6 +48,11 @@ export interface ApiVisit {
   status: string;
   time: string;
   __v?: number;
+  // Additional properties that might come from the API
+  buyerName?: string;
+  buyerEmail?: string;
+  buyerPhone?: string;
+  dateTime?: string;
 }
 
 export interface ApiChat {
@@ -135,7 +140,7 @@ export interface Chat {
       image: string;
     }[];
   }[];
-  context: Record<string, any>;
+  context: Record<string, unknown>;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -174,25 +179,22 @@ export const mapApiLeadToLead = (apiLead: ApiLead): Lead => ({
 
 // Map API Visit to UI Visit
 export const mapApiVisitToVisit = (apiVisit: ApiVisit): Visit => {
-  // Handle both API formats - your data shows some visits have direct fields
-  const visitData = apiVisit as any;
-  
   return {
-    id: visitData._id || visitData.id,
-    leadName: visitData.buyerName || visitData.leadName || "Unknown",
-    leadEmail: visitData.buyerEmail || visitData.leadEmail || "N/A",
-    leadPhone: visitData.buyerPhone || visitData.leadPhone || "N/A",
-    property: visitData.property || "N/A",
-    propertyAddress: visitData.propertyAddress || "N/A",
-    date: visitData.date || (visitData.dateTime ? new Date(visitData.dateTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
-    time: visitData.time || (visitData.dateTime ? new Date(visitData.dateTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "06:00 PM"),
-    duration: visitData.duration || "1 hour",
-    status: (visitData.status as Visit['status']) || 'confirmed',
-    assignedAgent: visitData.assignedAgent || visitData.agent || "Unassigned",
-    notes: visitData.notes || "",
-    avatar: visitData.avatar || "/default-avatar.png",
-    sessionId: visitData.sessionId,
-    createdAt: visitData.createdAt
+    id: apiVisit._id || apiVisit.id,
+    leadName: apiVisit.buyerName || apiVisit.leadName || "Unknown",
+    leadEmail: apiVisit.buyerEmail || apiVisit.leadEmail || "N/A",
+    leadPhone: apiVisit.buyerPhone || apiVisit.leadPhone || "N/A",
+    property: apiVisit.property || "N/A",
+    propertyAddress: apiVisit.propertyAddress || "N/A",
+    date: apiVisit.date || (apiVisit.dateTime ? new Date(apiVisit.dateTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
+    time: apiVisit.time || (apiVisit.dateTime ? new Date(apiVisit.dateTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "06:00 PM"),
+    duration: apiVisit.duration || "1 hour",
+    status: (apiVisit.status as Visit['status']) || 'confirmed',
+    assignedAgent: apiVisit.assignedAgent || apiVisit.agent || "Unassigned",
+    notes: apiVisit.notes || "",
+    avatar: apiVisit.avatar || "/default-avatar.png",
+    sessionId: apiVisit.sessionId,
+    createdAt: apiVisit.createdAt
   };
 };
 
@@ -242,7 +244,7 @@ export const getScoreColor = (score: number) => {
 };
 
 // Helper function to format budget
-export const formatBudget = (budget: any) => {
+export const formatBudget = (budget: Lead['budget'] | undefined | null) => {
   if (!budget) return 'Flexible';
   if (budget.min === 0 && budget.max === 1500000) return 'Up to $1.5M';
   if (budget.min === undefined && budget.max === undefined) return 'Flexible';

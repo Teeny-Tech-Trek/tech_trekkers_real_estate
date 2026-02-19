@@ -1,17 +1,11 @@
 import React from 'react';
 import { 
-  UserPlus, 
-  Building2, 
   TrendingUp,
   TrendingDown,
-  MessageSquare,
-  Calendar,
-  Target,
   DollarSign,
-  CheckCircle2,
   Clock,
-  Phone,
-  Award
+  Award,
+  Target
 } from 'lucide-react';
 import {
   LineChart,
@@ -23,43 +17,50 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-
-// Mock data
-const leadsData = [
-  { date: 'Jan 11', newLeads: 45, closed: 12 },
-  { date: 'Jan 14', newLeads: 52, closed: 15 },
-  { date: 'Jan 17', newLeads: 48, closed: 18 },
-  { date: 'Jan 20', newLeads: 61, closed: 14 },
-  { date: 'Jan 23', newLeads: 55, closed: 20 },
-  { date: 'Jan 26', newLeads: 67, closed: 22 },
-  { date: 'Jan 29', newLeads: 58, closed: 19 },
-  { date: 'Feb 01', newLeads: 72, closed: 25 },
-  { date: 'Feb 04', newLeads: 64, closed: 21 },
-  { date: 'Feb 07', newLeads: 69, closed: 28 },
-  { date: 'Feb 10', newLeads: 75, closed: 30 },
-];
-
-const topAgents = [
-  { id: 1, name: 'Sarah Chen', conversions: 48, revenue: 2840000, avatar: 'SC', trend: 12 },
-  { id: 2, name: 'Marcus Williams', conversions: 42, revenue: 2560000, avatar: 'MW', trend: 8 },
-  { id: 3, name: 'Emily Rodriguez', conversions: 38, revenue: 2180000, avatar: 'ER', trend: -3 },
-  { id: 4, name: 'David Kumar', conversions: 35, revenue: 2020000, avatar: 'DK', trend: 15 },
-];
-
-const recentActivities = [
-  { id: 1, type: 'lead', title: 'New lead from website', time: '5 min ago', icon: UserPlus, color: 'cyan' },
-  { id: 2, type: 'visit', title: 'Property visit scheduled - Marina Bay', time: '12 min ago', icon: Calendar, color: 'blue' },
-  { id: 3, type: 'chat', title: 'Chat conversation with John Doe', time: '23 min ago', icon: MessageSquare, color: 'purple' },
-  { id: 4, type: 'deal', title: 'Deal closed - $850,000', time: '1 hr ago', icon: CheckCircle2, color: 'green' },
-  { id: 5, type: 'call', title: 'Scheduled call with prospect', time: '2 hrs ago', icon: Phone, color: 'cyan' },
-];
+import { useDashboardLogic } from '../Logics/useDashboardLogic';
 
 const Dashboard = () => {
-  const currentDate = new Date().toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    month: 'short', 
-    day: 'numeric' 
-  });
+  const { 
+    headerInfo, 
+    kpiMetrics, 
+    leadsData, 
+    conversionData, 
+    recentActivities, 
+    topAgents,
+    loading,
+    error,
+    refreshDashboard,
+  } = useDashboardLogic();
+
+  const safeTotalVisits = conversionData.totalVisits > 0 ? conversionData.totalVisits : 1;
+  const conversionStroke = Math.min(
+    Math.max((conversionData.closedDeals / safeTotalVisits) * 502, 0),
+    502
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] p-10 text-white">
+        <p className="text-xl">Loading dashboard data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] p-10 text-red-400">
+        <p className="text-xl mb-4">Error loading dashboard: {error.message}</p>
+        <p className="text-md text-slate-400 mb-5">Please try again later or contact support.</p>
+        <button
+          type="button"
+          onClick={() => void refreshDashboard()}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen   bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] p-10 ">
@@ -69,61 +70,32 @@ const Dashboard = () => {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-3xl font-bold text-white mb-1">
-                Welcome back, Alex Morgan
+                Welcome back, {headerInfo.userName}
               </h1>
               <p className="text-slate-400">
-                Here's your real estate performance overview
+                {headerInfo.greeting}
               </p>
             </div>
             <div className="text-right">
-              <div className="text-cyan-400 text-sm font-medium">{currentDate}</div>
-              <div className="text-slate-500 text-xs">Updated in real-time</div>
+              <div className="text-cyan-400 text-sm font-medium">{headerInfo.currentDate}</div>
+              <div className="text-slate-500 text-xs">{headerInfo.updatedStatus}</div>
             </div>
           </div>
         </div>
 
         {/* KPI Metrics Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-          <KPICard
-            icon={UserPlus}
-            label="Total Leads"
-            value="1,847"
-            change="+12.5%"
-            trend="up"
-            iconColor="cyan"
-          />
-          <KPICard
-            icon={Building2}
-            label="Properties Listed"
-            value="342"
-            change="+8.2%"
-            trend="up"
-            iconColor="blue"
-          />
-          <KPICard
-            icon={Calendar}
-            label="Scheduled Visits"
-            value="156"
-            change="+15.3%"
-            trend="up"
-            iconColor="purple"
-          />
-          <KPICard
-            icon={MessageSquare}
-            label="Conversations"
-            value="2,341"
-            change="+9.7%"
-            trend="up"
-            iconColor="green"
-          />
-          <KPICard
-            icon={Target}
-            label="Conversion Rate"
-            value="18.4%"
-            change="-2.1%"
-            trend="down"
-            iconColor="emerald"
-          />
+          {kpiMetrics.map((metric) => (
+            <KPICard
+              key={metric.label}
+              icon={metric.icon}
+              label={metric.label}
+              value={metric.value}
+              change={metric.change}
+              trend={metric.trend}
+              iconColor={metric.iconColor || 'cyan'}
+            />
+          ))}
         </div>
 
         {/* Main Grid Layout */}
@@ -218,7 +190,7 @@ const Dashboard = () => {
                     fill="none"
                     stroke="url(#conversionGradient)"
                     strokeWidth="16"
-                    strokeDasharray={`${(156/850) * 502} 502`}
+                    strokeDasharray={`${conversionStroke} 502`}
                     strokeLinecap="round"
                     className="drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"
                   />
@@ -231,14 +203,14 @@ const Dashboard = () => {
                   </defs>
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="text-4xl font-bold text-white">18.4%</div>
+                  <div className="text-4xl font-bold text-white">{conversionData.conversionRate}%</div>
                   <div className="text-slate-400 text-sm">Conversion</div>
                 </div>
               </div>
               <div className="mt-6 space-y-3 w-full">
-                <ConversionStep label="Total Visits" value="850" color="blue" />
-                <ConversionStep label="Qualified Leads" value="420" color="cyan" />
-                <ConversionStep label="Closed Deals" value="156" color="green" />
+                <ConversionStep label="Total Visits" value={String(conversionData.totalVisits)} color="blue" />
+                <ConversionStep label="Qualified Leads" value={String(conversionData.qualifiedLeads)} color="cyan" />
+                <ConversionStep label="Closed Deals" value={String(conversionData.closedDeals)} color="green" />
               </div>
             </div>
           </div>
@@ -252,11 +224,17 @@ const Dashboard = () => {
               <h2 className="text-xl font-bold text-white mb-1">Recent Activity</h2>
               <p className="text-slate-400 text-sm">Latest leads, visits & chats</p>
             </div>
-            <div className="space-y-3">
-              {recentActivities.map((activity) => (
-                <ActivityItem key={activity.id} activity={activity} />
-              ))}
-            </div>
+            {recentActivities.length === 0 ? (
+              <div className="text-slate-400 text-sm py-6 text-center border border-slate-700/30 rounded-lg">
+                No recent activity yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentActivities.map((activity) => (
+                  <ActivityItem key={activity.id} activity={activity} />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Top Agents */}
@@ -265,11 +243,17 @@ const Dashboard = () => {
               <h2 className="text-xl font-bold text-white mb-1">Top Agents</h2>
               <p className="text-slate-400 text-sm">By conversions & revenue</p>
             </div>
-            <div className="space-y-4">
-              {topAgents.map((agent, index) => (
-                <AgentCard key={agent.id} agent={agent} rank={index + 1} />
-              ))}
-            </div>
+            {topAgents.length === 0 ? (
+              <div className="text-slate-400 text-sm py-6 text-center border border-slate-700/30 rounded-lg">
+                No agents available yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {topAgents.map((agent, index) => (
+                  <AgentCard key={agent.id} agent={agent} rank={index + 1} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -278,34 +262,74 @@ const Dashboard = () => {
 };
 
 // Components
+interface KPICardProps {
+  icon?: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string | number;
+  change?: string;
+  trend?: 'up' | 'down';
+  iconColor: 'cyan' | 'blue' | 'purple' | 'green' | 'emerald';
+}
+
+interface ActivityItemProps {
+  activity: {
+    id: string | number;
+    type: string;
+    title: string;
+    time: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    color?: 'cyan' | 'blue' | 'purple' | 'green';
+  };
+}
+
+interface AgentCardProps {
+  agent: {
+    id: string | number;
+    name: string;
+    conversions: number;
+    revenue: number;
+    avatar: string;
+    trend?: number;
+  };
+  rank: number;
+}
+
+interface ConversionStepProps {
+  label: string;
+  value: string;
+  color: 'blue' | 'cyan' | 'green';
+}
+
+const colorMap = {
+  cyan: { bg: 'from-cyan-500/20 to-cyan-600/10', icon: 'text-cyan-400', glow: 'shadow-cyan-500/20' },
+  blue: { bg: 'from-blue-500/20 to-blue-600/10', icon: 'text-blue-400', glow: 'shadow-blue-500/20' },
+  purple: { bg: 'from-purple-500/20 to-purple-600/10', icon: 'text-purple-400', glow: 'shadow-purple-500/20' },
+  green: { bg: 'from-green-500/20 to-green-600/10', icon: 'text-green-400', glow: 'shadow-green-500/20' },
+  emerald: { bg: 'from-emerald-500/20 to-emerald-600/10', icon: 'text-emerald-400', glow: 'shadow-emerald-500/20' },
+};
+
 function KPICard({ 
   icon: Icon, 
   label, 
   value, 
-  change, 
-  trend, 
+  change = '', 
+  trend = 'up', 
   iconColor 
-}) {
-  const colorMap = {
-    cyan: { bg: 'from-cyan-500/20 to-cyan-600/10', icon: 'text-cyan-400', glow: 'shadow-cyan-500/20' },
-    blue: { bg: 'from-blue-500/20 to-blue-600/10', icon: 'text-blue-400', glow: 'shadow-blue-500/20' },
-    purple: { bg: 'from-purple-500/20 to-purple-600/10', icon: 'text-purple-400', glow: 'shadow-purple-500/20' },
-    green: { bg: 'from-green-500/20 to-green-600/10', icon: 'text-green-400', glow: 'shadow-green-500/20' },
-    emerald: { bg: 'from-emerald-500/20 to-emerald-600/10', icon: 'text-emerald-400', glow: 'shadow-emerald-500/20' },
-  };
-
+}: KPICardProps) {
   const colors = colorMap[iconColor];
 
   return (
     <div className={`bg-gradient-to-br from-[#0d1b2a] to-[#162335] rounded-xl border border-cyan-500/10 p-5 shadow-xl hover:shadow-2xl ${colors.glow} transition-all`}>
       <div className="flex items-start justify-between mb-3">
         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${colors.bg} flex items-center justify-center`}>
-          <Icon className={`w-5 h-5 ${colors.icon}`} />
+          {Icon && <Icon className={`w-5 h-5 ${colors.icon}`} />}
         </div>
-        <div className={`flex items-center gap-1 text-xs font-medium ${trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
-          {trend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-          {change}
-        </div>
+        {change && (
+          <div className={`flex items-center gap-1 text-xs font-medium ${trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
+            {trend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            {change}
+          </div>
+        )}
       </div>
       <div className="text-2xl font-bold text-white mb-1">{value}</div>
       <div className="text-slate-400 text-sm">{label}</div>
@@ -313,8 +337,8 @@ function KPICard({
   );
 }
 
-function ActivityItem({ activity }) {
-  const colorMap = {
+function ActivityItem({ activity }: ActivityItemProps) {
+  const activityColorMap = {
     cyan: 'bg-cyan-500/10 text-cyan-400',
     blue: 'bg-blue-500/10 text-blue-400',
     purple: 'bg-purple-500/10 text-purple-400',
@@ -322,12 +346,12 @@ function ActivityItem({ activity }) {
   };
 
   const Icon = activity.icon;
-  const colorClass = colorMap[activity.color];
+  const colorClass = activity.color ? activityColorMap[activity.color] : 'bg-cyan-500/10 text-cyan-400';
 
   return (
     <div className="flex items-center gap-4 p-3 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors border border-slate-700/30">
       <div className={`w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center flex-shrink-0`}>
-        <Icon className="w-5 h-5" />
+        {Icon && <Icon className="w-5 h-5" />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-white text-sm font-medium truncate">{activity.title}</div>
@@ -340,9 +364,16 @@ function ActivityItem({ activity }) {
   );
 }
 
-function AgentCard({ agent, rank }) {
+function AgentCard({ agent, rank }: AgentCardProps) {
   const maxConversions = 48;
-  const percentage = (agent.conversions / maxConversions) * 100;
+  const percentage = Math.min(Math.max((agent.conversions / maxConversions) * 100, 0), 100);
+  const trend = agent.trend ?? 0;
+  const revenueLabel = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(agent.revenue || 0);
 
   return (
     <div className="flex items-center gap-4 p-4 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-all border border-slate-700/30">
@@ -360,9 +391,9 @@ function AgentCard({ agent, rank }) {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-white font-medium">{agent.name}</span>
-            <span className={`text-xs flex items-center gap-1 ${agent.trend > 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {agent.trend > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-              {Math.abs(agent.trend)}%
+            <span className={`text-xs flex items-center gap-1 ${trend > 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {trend > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+              {Math.abs(trend)}%
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs text-slate-400">
@@ -372,7 +403,7 @@ function AgentCard({ agent, rank }) {
             </span>
             <span className="flex items-center gap-1">
               <DollarSign className="w-3 h-3" />
-              ${(agent.revenue / 1000000).toFixed(1)}M
+              {revenueLabel}
             </span>
           </div>
           <div className="mt-2 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
@@ -387,8 +418,8 @@ function AgentCard({ agent, rank }) {
   );
 }
 
-function ConversionStep({ label, value, color }) {
-  const colorMap = {
+function ConversionStep({ label, value, color }: ConversionStepProps) {
+  const conversionColorMap = {
     blue: 'bg-blue-500',
     cyan: 'bg-cyan-500',
     green: 'bg-green-500',
@@ -397,7 +428,7 @@ function ConversionStep({ label, value, color }) {
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30 border border-slate-700/30">
       <div className="flex items-center gap-3">
-        <div className={`w-2 h-2 rounded-full ${colorMap[color]}`} />
+        <div className={`w-2 h-2 rounded-full ${conversionColorMap[color]}`} />
         <span className="text-slate-300 text-sm">{label}</span>
       </div>
       <span className="text-white font-semibold">{value}</span>

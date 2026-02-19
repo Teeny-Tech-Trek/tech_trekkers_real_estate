@@ -1,19 +1,28 @@
-// src/types/agent.ts
 export interface Agent {
   _id: string;
   name: string;
   personality: string;
   voice: string;
-  status: 'active' | 'paused' | 'draft';
+  avatar: string; // Could be a character or identifier
+  description: string;
+  avatarUrl: string; // Relative path, e.g., "/uploads/avatars/123.png"
+  organization: string; // ObjectId
+  createdBy: string; // ObjectId
+  status: 'draft' | 'active' | 'paused';
   conversations: number;
   conversions: number;
   revenue: string;
   conversionRate: string;
-  avatar: string; // Initials (e.g., "SJ")
-  avatarUrl?: string; // URL of uploaded image (optional)
+  createdAt?: string; // Assuming Mongoose adds these
+  updatedAt?: string; // Assuming Mongoose adds these
+  // Add other fields if needed for the UI
+}
+
+export interface CreateAgentPayload {
+  name: string;
+  personality: string;
+  voice?: string;
+  avatar?: string;
   description: string;
-  organization: string;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
+  avatarFile?: File; // For form data upload
 }
