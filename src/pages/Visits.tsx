@@ -52,6 +52,12 @@ const toIsoDate = (value: string) => {
   return date.toISOString();
 };
 
+const getCurrentLocalDateTimeInput = () => {
+  const now = new Date();
+  const tzOffset = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
+};
+
 type VisitFormState = {
   agent: string;
   property: string;
@@ -71,7 +77,7 @@ const createDefaultFormState = (): VisitFormState => ({
   buyerName: "",
   buyerEmail: "",
   buyerPhone: "",
-  dateTime: "",
+  dateTime: getCurrentLocalDateTimeInput(),
   notes: "",
   status: "scheduled",
 });
@@ -492,6 +498,15 @@ export default function Visits() {
                   type="datetime-local"
                   value={formState.dateTime}
                   onChange={(e) => setFormState((prev) => ({ ...prev, dateTime: e.target.value }))}
+                  onFocus={(e) => {
+                    const pickerInput = e.currentTarget as HTMLInputElement & { showPicker?: () => void };
+                    pickerInput.showPicker?.();
+                  }}
+                  onClick={(e) => {
+                    const pickerInput = e.currentTarget as HTMLInputElement & { showPicker?: () => void };
+                    pickerInput.showPicker?.();
+                  }}
+                  step={60}
                   className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/35"
                 />
               </label>
