@@ -407,16 +407,27 @@ const PropertyCard = ({
           </span>
         </div>
 
-        {/* Favorite */}
-        <button
-          type="button"
-          onClick={onFavorite}
-          className="absolute top-3 right-3 h-8 w-8 rounded-full bg-slate-900/70 border border-slate-700/60 inline-flex items-center justify-center backdrop-blur-sm hover:border-slate-500 hover:bg-slate-800 transition-all duration-200"
-        >
-          <Lucide.Heart
-            className={`h-3.5 w-3.5 transition-colors ${property.favorite ? 'fill-red-500 text-red-500' : 'text-slate-400'}`}
-          />
-        </button>
+        {/* Top actions: favorite + delete */}
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onFavorite}
+            title="Toggle favorite"
+            className="h-8 w-8 rounded-full bg-slate-900/70 border border-slate-700/60 inline-flex items-center justify-center backdrop-blur-sm hover:border-slate-500 hover:bg-slate-800 transition-all duration-200"
+          >
+            <Lucide.Heart
+              className={`h-3.5 w-3.5 transition-colors ${property.favorite ? 'fill-red-500 text-red-500' : 'text-slate-400'}`}
+            />
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            title="Delete property"
+            className="h-8 w-8 rounded-full bg-slate-900/70 border border-red-500/40 text-red-400 inline-flex items-center justify-center backdrop-blur-sm hover:bg-red-500/20 hover:border-red-500/60 transition-all duration-200"
+          >
+            <Lucide.Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -469,7 +480,7 @@ const PropertyCard = ({
         </div>
 
         {/* Action buttons */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <button
             type="button"
             onClick={onLeads}
@@ -497,13 +508,6 @@ const PropertyCard = ({
             className="flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-800/50 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-800 hover:border-slate-600/50 hover:text-white transition-all duration-200 text-xs sm:text-sm font-medium"
           >
             <Lucide.Pencil className="w-4 h-4" /> Edit
-          </button>
-          <button
-            type="button"
-            onClick={onDelete}
-            className="col-span-2 sm:col-span-3 flex items-center justify-center gap-2 px-3 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500/20 hover:border-red-500/40 transition-all duration-200 text-xs sm:text-sm font-medium"
-          >
-            <Lucide.Trash2 className="w-4 h-4" /> Delete
           </button>
         </div>
       </div>
@@ -628,7 +632,7 @@ const PropertyViewDialog = ({
               {sc.label}
             </span>
           </div>
-
+          
           {/* Close */}
           <button
             type="button"

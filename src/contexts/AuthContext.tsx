@@ -17,12 +17,18 @@ export const useAuth = () => {
   return context;
 };
 
-const normalizeOrganizationId = (
-  value: string | { id?: string; _id?: string } | null | undefined
-): string | null => {
+const normalizeOrganizationRef = (
+  value: string | { id?: string; _id?: string; name?: string } | null | undefined
+): string | { id: string; _id: string; name?: string } | null => {
   if (!value) return null;
   if (typeof value === 'string') return value;
-  return value.id || value._id || null;
+  const orgId = value.id || value._id;
+  if (!orgId) return null;
+  return {
+    id: orgId,
+    _id: orgId,
+    name: value.name,
+  };
 };
 
 const normalizeUser = (rawUser: User): User => {
@@ -31,7 +37,7 @@ const normalizeUser = (rawUser: User): User => {
     ...rawUser,
     id: normalizedId,
     _id: normalizedId,
-    workingUnderOrganization: normalizeOrganizationId(rawUser.workingUnderOrganization),
+    workingUnderOrganization: normalizeOrganizationRef(rawUser.workingUnderOrganization),
   };
 };
 

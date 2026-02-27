@@ -257,25 +257,25 @@ export default function Avatars() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] p-10">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1e3a] to-[#0a1628] p-4 sm:p-6 lg:p-10">
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-40">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative max-w-[1400px] mx-auto px-6 lg:px-8 py-8 lg:py-12">
+      <div className="relative max-w-[1400px] mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div className="mb-12">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-12">
+        <div className="mb-8 sm:mb-12">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 sm:gap-8 mb-8 sm:mb-12">
             <div className="space-y-3">
-              <h1 className="text-6xl font-bold text-white tracking-tight">AI Agents</h1>
-              <p className="text-lg text-slate-400">Intelligent automation for your sales team</p>
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">AI Agents</h1>
+              <p className="text-sm sm:text-lg text-slate-400">Intelligent automation for your sales team</p>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               {/* Plan usage pill */}
-              <div className="flex items-center gap-4 px-5 py-3 bg-slate-900/40 border border-slate-800/50 rounded-full backdrop-blur-sm">
+              <div className="w-full sm:w-auto flex items-center justify-center sm:justify-start gap-4 px-4 sm:px-5 py-2.5 sm:py-3 bg-slate-900/40 border border-slate-800/50 rounded-full backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-cyan-400 rounded-full" />
                   <div className="text-sm">
@@ -290,7 +290,7 @@ export default function Avatars() {
               <button
                 onClick={fetchAgents}
                 disabled={loading}
-                className="p-3 bg-slate-900/40 border border-slate-800/50 rounded-full hover:bg-slate-800/50 hover:border-slate-700/50 transition-all duration-200 backdrop-blur-sm group disabled:opacity-50"
+                className="p-2.5 sm:p-3 bg-slate-900/40 border border-slate-800/50 rounded-full hover:bg-slate-800/50 hover:border-slate-700/50 transition-all duration-200 backdrop-blur-sm group disabled:opacity-50"
               >
                 <RefreshCw className={`w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-all duration-500 ${loading ? 'animate-spin' : 'group-hover:rotate-180'}`} />
               </button>
@@ -298,7 +298,7 @@ export default function Avatars() {
               <button
                 onClick={() => setShowCreateModal(true)}
                 disabled={totalAgents >= maxAgents}
-                className="group flex items-center gap-2.5 px-6 py-3 bg-white hover:bg-slate-100 disabled:bg-slate-800 disabled:text-slate-500 text-slate-900 rounded-full font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100 disabled:border disabled:border-slate-700"
+                className="w-full sm:w-auto group flex items-center justify-center gap-2.5 px-5 sm:px-6 py-2.5 sm:py-3 bg-white hover:bg-slate-100 disabled:bg-slate-800 disabled:text-slate-500 text-slate-900 rounded-full font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100 disabled:border disabled:border-slate-700"
               >
                 <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
                 Create Agent
@@ -307,40 +307,27 @@ export default function Avatars() {
           </div>
 
           {/* ── KPI Stats ───────────────────────────────────────────────── */}
-          <div className="relative mb-8">
-            <div className="flex items-center justify-between gap-8 px-4">
-              <div className="flex-1">
-                <div className="flex items-baseline gap-3 mb-1.5">
-                  <span className="text-5xl font-bold text-white tracking-tight">{totalAgents}</span>
-                </div>
-                <div className="text-slate-400 font-medium">Total Agents</div>
-                <div className="text-slate-600 text-sm mt-0.5">{maxAgents - totalAgents} slots available</div>
-              </div>
-              <div className="w-px h-16 bg-gradient-to-b from-transparent via-slate-700/30 to-transparent" />
-              <div className="flex-1">
-                <div className="flex items-baseline gap-3 mb-1.5">
-                  <span className="text-5xl font-bold text-white tracking-tight">{activeAgents}</span>
-                </div>
-                <div className="text-slate-400 font-medium">Active Now</div>
-                <div className="text-slate-600 text-sm mt-0.5">{activeRate}% active rate</div>
-              </div>
-              <div className="w-px h-16 bg-gradient-to-b from-transparent via-slate-700/30 to-transparent" />
-              <div className="flex-1">
-                <div className="flex items-baseline gap-3 mb-1.5">
-                  <span className="text-5xl font-bold text-white tracking-tight">{totalConversations.toLocaleString()}</span>
-                </div>
-                <div className="text-slate-400 font-medium">Conversations</div>
-                <div className="text-slate-600 text-sm mt-0.5">Avg {avgConversationsPerAgent.toLocaleString()} per agent</div>
-              </div>
-              <div className="w-px h-16 bg-gradient-to-b from-transparent via-slate-700/30 to-transparent" />
-              <div className="flex-1">
-                <div className="flex items-baseline gap-3 mb-1.5">
-                  <span className="text-5xl font-bold text-white tracking-tight">{avgConversionRate}%</span>
-                </div>
-                <div className="text-slate-400 font-medium">Conversion Rate</div>
-                <div className="text-slate-600 text-sm mt-0.5">{totalConversions.toLocaleString()} total conversions</div>
-              </div>
-            </div>
+          <div className="relative mb-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+            <StatCard
+              value={totalAgents.toLocaleString()}
+              label="Total Agents"
+              sub={`${maxAgents - totalAgents} slots available`}
+            />
+            <StatCard
+              value={activeAgents.toLocaleString()}
+              label="Active Now"
+              sub={`${activeRate}% active rate`}
+            />
+            <StatCard
+              value={totalConversations.toLocaleString()}
+              label="Conversations"
+              sub={`Avg ${avgConversationsPerAgent.toLocaleString()} per agent`}
+            />
+            <StatCard
+              value={`${avgConversionRate}%`}
+              label="Conversion Rate"
+              sub={`${totalConversions.toLocaleString()} total conversions`}
+            />
           </div>
 
           {/* ── Search + Filter ──────────────────────────────────────────── */}
@@ -358,7 +345,7 @@ export default function Avatars() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'paused' | 'draft')}
-              className="px-4 py-3.5 bg-slate-900/30 border border-slate-800/50 rounded-xl text-slate-300 text-sm hover:bg-slate-900/50 transition-all focus:outline-none appearance-none cursor-pointer"
+              className="w-full sm:w-48 px-4 py-3.5 bg-slate-900/30 border border-slate-800/50 rounded-xl text-slate-300 text-sm hover:bg-slate-900/50 transition-all focus:outline-none appearance-none cursor-pointer"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -376,7 +363,7 @@ export default function Avatars() {
             <EmptyState onCreateClick={() => setShowCreateModal(true)} />
           )
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {filteredAgents.map((agent) => (
               <EnhancedAgentCard
                 key={agent._id}
@@ -817,11 +804,11 @@ function EnhancedAgentCard({
       : 0;
 
   return (
-    <div className="group relative bg-slate-900/30 border border-slate-800/50 rounded-2xl p-6 hover:bg-slate-900/50 hover:border-slate-700/50 transition-all duration-300">
+    <div className="group relative bg-slate-900/30 border border-slate-800/50 rounded-2xl p-4 sm:p-6 hover:bg-slate-900/50 hover:border-slate-700/50 transition-all duration-300">
       <div className="relative">
         {/* Top */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-start gap-4 flex-1 min-w-0">
+        <div className="flex items-start justify-between mb-5 sm:mb-6">
+          <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
             <div className="relative flex-shrink-0">
               {agent.avatarUrl ? (
                 <img
@@ -842,14 +829,14 @@ function EnhancedAgentCard({
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-white font-semibold text-base mb-1 truncate">{agent.name}</h3>
+              <h3 className="text-white font-semibold text-sm sm:text-base mb-1 truncate">{agent.name}</h3>
               <p className="text-slate-500 text-sm font-medium">{agent.personality}</p>
               <p className="text-slate-400 text-xs mt-1">Tone: {agent.tone || 'professional'}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 ml-2">
-            <div className={`flex items-center gap-1.5 text-xs font-medium ${status.color}`}>
+          <div className="flex items-center gap-2 sm:gap-3 ml-2">
+            <div className={`hidden sm:flex items-center gap-1.5 text-xs font-medium ${status.color}`}>
               <div className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
               {status.label}
             </div>
@@ -905,7 +892,7 @@ function EnhancedAgentCard({
         <p className="text-slate-400 text-sm leading-relaxed mb-6 line-clamp-2">{agent.description}</p>
 
         {/* Metrics */}
-        <div className="space-y-3.5 mb-6">
+        <div className="space-y-3.5 mb-5 sm:mb-6">
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-500">Conversations</span>
             <span className="text-white font-semibold">{agent.conversations.toLocaleString()}</span>
@@ -928,24 +915,24 @@ function EnhancedAgentCard({
         </div>
 
         {/* Actions */}
-        <div className="grid grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <button
             onClick={onShowQR}
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-800 hover:border-slate-600/50 hover:text-white transition-all duration-200 text-sm font-medium"
           >
-            <QrCode className="w-4 h-4" /> Share
+            <QrCode className="w-4 h-4" /> <span className="hidden sm:inline">Share</span>
           </button>
           <button
             onClick={onLeads}
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600/15 border border-blue-500/30 text-blue-200 rounded-xl hover:bg-blue-600/25 transition-all duration-200 text-sm font-medium"
           >
-            <Users className="w-4 h-4" /> Leads
+            <Users className="w-4 h-4" /> <span className="hidden sm:inline">Leads</span>
           </button>
           <button
             onClick={onVisits}
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-600/15 border border-cyan-500/30 text-cyan-200 rounded-xl hover:bg-cyan-600/25 transition-all duration-200 text-sm font-medium"
           >
-            <Users className="w-4 h-4" /> Visits
+            <Users className="w-4 h-4" /> <span className="hidden sm:inline">Visits</span>
           </button>
           <button
             onClick={onToggleStatus}
@@ -956,9 +943,9 @@ function EnhancedAgentCard({
             }`}
           >
             {agent.status === 'active' ? (
-              <><Pause className="w-4 h-4" /> Pause</>
+              <><Pause className="w-4 h-4" /> <span className="hidden sm:inline">Pause</span></>
             ) : (
-              <><Play className="w-4 h-4" /> Activate</>
+              <><Play className="w-4 h-4" /> <span className="hidden sm:inline">Activate</span></>
             )}
           </button>
         </div>
@@ -967,24 +954,34 @@ function EnhancedAgentCard({
   );
 }
 
+function StatCard({ value, label, sub }: { value: string; label: string; sub: string }) {
+  return (
+    <div className="min-w-0 rounded-xl border border-slate-800/50 bg-slate-900/25 p-4">
+      <div className="text-3xl sm:text-4xl font-bold text-white tracking-tight">{value}</div>
+      <div className="text-slate-400 font-medium text-sm mt-1">{label}</div>
+      <div className="text-slate-600 text-xs sm:text-sm mt-0.5 break-words">{sub}</div>
+    </div>
+  );
+}
+
 function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center py-24 px-4">
-      <div className="relative mb-8">
+    <div className="flex flex-col items-center justify-center py-16 sm:py-24 px-4">
+      <div className="relative mb-6 sm:mb-8">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 blur-3xl rounded-full" />
-        <div className="relative w-24 h-24 bg-gradient-to-br from-slate-800 to-slate-700 border border-slate-600/50 rounded-3xl flex items-center justify-center shadow-2xl">
-          <Bot className="w-12 h-12 text-slate-400" />
+        <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-slate-800 to-slate-700 border border-slate-600/50 rounded-3xl flex items-center justify-center shadow-2xl">
+          <Bot className="w-10 h-10 sm:w-12 sm:h-12 text-slate-400" />
         </div>
       </div>
-      <h3 className="text-3xl font-bold text-white mb-3">No AI Agents Yet</h3>
-      <p className="text-slate-400 text-center max-w-md mb-8 leading-relaxed">
+      <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3 text-center">No AI Agents Yet</h3>
+      <p className="text-slate-400 text-center max-w-md mb-6 sm:mb-8 leading-relaxed text-sm sm:text-base">
         Create your first AI agent to automate conversations, qualify leads, and boost conversions 24/7.
       </p>
       <button
         onClick={onCreateClick}
-        className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105"
+        className="w-full sm:w-auto group flex items-center justify-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105"
       >
-        <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+        <Plus className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-300" />
         Create Your First Agent
       </button>
     </div>

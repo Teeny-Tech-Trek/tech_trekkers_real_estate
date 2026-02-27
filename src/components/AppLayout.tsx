@@ -93,6 +93,33 @@ const AppLayout = () => {
     // return () => clearInterval(interval);
   }, []);
 
+  const isLikelyObjectId = (value: string) => /^[a-f0-9]{24}$/i.test(value);
+
+  const userDisplayName = [user?.firstName, user?.lastName]
+    .filter((part): part is string => Boolean(part && part.trim()))
+    .join(" ")
+    .trim() || "User";
+
+  const organizationName = (() => {
+    const org = user?.workingUnderOrganization;
+    if (!org) return null;
+    if (typeof org === "object") {
+      return org.name?.trim() || null;
+    }
+    if (typeof org === "string" && org.trim() && !isLikelyObjectId(org.trim())) {
+      return org.trim();
+    }
+    return null;
+  })();
+
+  const subtitle = organizationName
+    ? organizationName
+    : user?.accountType === "organization"
+      ? "Organization Account"
+      : user?.role === "individual"
+        ? "Individual Account"
+        : "No Organization";
+
   return (
     <div className="min-h-screen bg-[#F8FAFB]">
       {/* Top Navbar */}
@@ -104,8 +131,8 @@ const AppLayout = () => {
               <img src={logoImg} alt="logo" className="w-full h-full object-contain" />
             </div>
             <div className="hidden sm:block">
-              <h2 className="font-semibold text-white text-base lg:text-lg">Govind</h2>
-              <p className="text-xs lg:text-sm text-gray-100 leading-none">Tenny Tech Trek</p>
+              <h2 className="font-semibold text-white text-base lg:text-lg">{userDisplayName}</h2>
+              <p className="text-xs lg:text-sm text-gray-100 leading-none">{subtitle}</p>
             </div>
           </div>
 
@@ -241,13 +268,10 @@ const AppLayout = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900 truncate">
-                    {user?.firstName || 'User'}
+                    {userDisplayName}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
-                    {/* Show organization name if available, else fallback */}
-                    {typeof user?.workingUnderOrganization === 'object'
-                      ? user.workingUnderOrganization?.name
-                      : user?.workingUnderOrganization || 'Organization'}
+                    {subtitle}
                   </p>
                 </div>
               </div>

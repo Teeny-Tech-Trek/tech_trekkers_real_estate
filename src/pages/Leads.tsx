@@ -154,7 +154,7 @@ export default function Leads() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="flex gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-5 lg:gap-3 lg:overflow-visible">
             <StatCard icon={<Users className="w-4 h-4 text-blue-300" />} label="Total" value={logic.stats.total} />
             <StatCard icon={<Flame className="w-4 h-4 text-orange-300" />} label="Hot" value={logic.stats.hot} />
             <StatCard icon={<CircleDot className="w-4 h-4 text-cyan-300" />} label="New" value={logic.stats.newLeads} />
@@ -383,9 +383,12 @@ export default function Leads() {
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
-    <div className="bg-slate-900/30 border border-slate-800/50 rounded-xl px-4 py-3">
-      <div className="flex items-center gap-2 mb-2">{icon}<span className="text-xs text-slate-400 uppercase tracking-wide">{label}</span></div>
-      <div className="text-2xl font-bold text-white">{value}</div>
+    <div className="shrink-0 min-w-[128px] rounded-full border border-slate-700/40 bg-slate-900/20 px-3 py-2 sm:min-w-0 sm:rounded-xl sm:border-slate-800/50 sm:bg-slate-900/30 sm:px-4 sm:py-3">
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="text-[11px] sm:text-xs text-slate-400 uppercase tracking-wide">{label}</span>
+      </div>
+      <div className="text-xl sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{value}</div>
     </div>
   );
 }

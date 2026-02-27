@@ -106,21 +106,21 @@ const Settings: React.FC = () => {
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative max-w-[1400px] mx-auto px-6 lg:px-8 py-8 lg:py-12">
+      <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Header */}
-        <div className="mb-10">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-10">
+        <div className="mb-8 sm:mb-10">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 sm:gap-6 mb-8 sm:mb-10">
             <div className="space-y-2">
-              <h1 className="text-5xl font-bold text-white tracking-tight">Settings</h1>
-              <p className="text-slate-400">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">Settings</h1>
+              <p className="text-slate-400 text-sm sm:text-base">
                 {logic.isOrganizationUser
                   ? 'Manage your organization, team, and preferences'
                   : 'Manage your account and preferences'}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {logic.isOrganizationUser && logic.billingInfo && (
-                <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-900/40 border border-slate-800/50 rounded-full backdrop-blur-sm">
+                <div className="w-full sm:w-auto flex items-center justify-center sm:justify-start gap-3 px-4 py-2.5 bg-slate-900/40 border border-slate-800/50 rounded-full backdrop-blur-sm">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full" />
                   <span className="text-sm text-white font-bold">{logic.teamMembers.length}</span>
                   <span className="text-slate-500 text-sm">/</span>
@@ -142,7 +142,7 @@ const Settings: React.FC = () => {
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
-                className={`relative flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                className={`relative flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all whitespace-nowrap ${
                   activeTab === id
                     ? 'bg-white text-slate-900'
                     : 'bg-slate-900/30 border border-slate-800/50 text-slate-400 hover:bg-slate-900/50 hover:text-slate-300'
@@ -163,8 +163,8 @@ const Settings: React.FC = () => {
           <div className="space-y-8">
 
             {/* Profile Section — shown for ALL users */}
-            <div className="bg-slate-900/30 border border-slate-800/50 rounded-2xl p-8">
-              <div className="flex items-center justify-between mb-6">
+            <div className="bg-slate-900/30 border border-slate-800/50 rounded-2xl p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <SectionHeader color="from-blue-500 to-cyan-500" title="My Profile" />
                 {!isEditMode && (
                   <button
@@ -244,10 +244,10 @@ const Settings: React.FC = () => {
                   </FieldGroup>
 
                   {isEditMode && (
-                    <div className="md:col-span-2 flex gap-3 justify-end">
+                    <div className="md:col-span-2 flex flex-col sm:flex-row gap-3 justify-end">
                       <button
                         onClick={() => setIsEditMode(false)}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-all font-semibold border border-slate-700"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-all font-semibold border border-slate-700"
                       >
                         <X className="w-4 h-4" />
                         Cancel
@@ -257,7 +257,7 @@ const Settings: React.FC = () => {
                           logic.handleUpdateProfile();
                           setIsEditMode(false);
                         }}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all font-semibold"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all font-semibold"
                       >
                         <Check className="w-4 h-4" />
                         Save Changes
@@ -270,8 +270,8 @@ const Settings: React.FC = () => {
 
             {/* Organization Info — for org users and members */}
             {(logic.isOrganizationUser || logic.user?.workingUnderOrganization) && (
-              <div className="bg-slate-900/30 border border-slate-800/50 rounded-2xl p-8">
-                <div className="flex items-center justify-between mb-6">
+              <div className="bg-slate-900/30 border border-slate-800/50 rounded-2xl p-4 sm:p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                   <SectionHeader color="from-purple-500 to-pink-500" title="Organization Information" />
                   {!logic.isOwner && (
                     <span className="text-xs text-slate-500 italic">View only — contact your owner to make changes</span>
@@ -333,7 +333,7 @@ const Settings: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-3 justify-end mt-6">
+                <div className="flex flex-col sm:flex-row gap-3 justify-end mt-6">
                   {logic.isOwner && (
                     <SaveButton onClick={logic.handleUpdateOrganization} label="Save Organization" />
                   )}
@@ -354,7 +354,7 @@ const Settings: React.FC = () => {
                           onConfirm: () => logic.handleRequestLeave(),
                         })
                       }
-                      className="flex items-center gap-2 px-6 py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/50 rounded-lg transition-all font-semibold"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/50 rounded-lg transition-all font-semibold"
                     >
                       <LogOut className="w-4 h-4" />
                       Leave Organization
@@ -374,8 +374,8 @@ const Settings: React.FC = () => {
               <span className="text-slate-500">({logic.myInvites.length})</span>
             </div>
             {logic.myInvites.map((invite) => (
-              <div key={invite._id} className="flex items-center justify-between p-6 bg-slate-900/30 border border-slate-800/50 rounded-xl hover:border-slate-700/50 transition-all">
-                <div className="flex items-center gap-4">
+              <div key={invite._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6 bg-slate-900/30 border border-slate-800/50 rounded-xl hover:border-slate-700/50 transition-all">
+                <div className="flex items-start sm:items-center gap-4">
                   <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center justify-center">
                     <Building2 className="w-6 h-6 text-purple-400" />
                   </div>
@@ -385,7 +385,7 @@ const Settings: React.FC = () => {
                     <p className="text-xs text-slate-500 mt-0.5">{invite.email}</p>
                   </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <button onClick={() =>
                     setConfirmAction({
                       title: "Accept Organization Invite",
@@ -400,7 +400,7 @@ const Settings: React.FC = () => {
                       confirmTone: "success",
                       onConfirm: () => logic.handleAcceptInvite(invite._id),
                     })
-                  } className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20 transition-all text-sm font-medium">
+                  } className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20 transition-all text-sm font-medium">
                     <UserCheck className="w-4 h-4" /> Accept
                   </button>
                   <button onClick={() =>
@@ -417,7 +417,7 @@ const Settings: React.FC = () => {
                       confirmTone: "danger",
                       onConfirm: () => logic.handleRejectInvite(invite._id),
                     })
-                  } className="flex items-center gap-2 px-4 py-2 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-all text-sm font-medium">
+                  } className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-all text-sm font-medium">
                     <UserX className="w-4 h-4" /> Decline
                   </button>
                 </div>
@@ -429,12 +429,12 @@ const Settings: React.FC = () => {
         {/* ── TEAM TAB ────────────────────────────────────────────────── */}
         {activeTab === 'team' && logic.isOrganizationUser && (
           <div className="space-y-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <SectionHeader color="from-purple-500 to-pink-500" title="Team Members" />
                 <span className="text-slate-500">({logic.teamMembers.length})</span>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 {!logic.isOwner && (
                   <button onClick={() =>
                     setConfirmAction({
@@ -450,12 +450,12 @@ const Settings: React.FC = () => {
                       confirmTone: "danger",
                       onConfirm: () => logic.handleRequestLeave(),
                     })
-                  } className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-full font-semibold hover:bg-red-500/20 transition-all text-sm">
+                  } className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-full font-semibold hover:bg-red-500/20 transition-all text-sm">
                     <LogOut className="w-4 h-4" /> Request to Leave
                   </button>
                 )}
                 {logic.canManageTeam && (
-                  <button onClick={() => setShowInviteModal(true)} className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-full font-semibold hover:bg-slate-100 hover:scale-105 transition-all text-sm">
+                  <button onClick={() => setShowInviteModal(true)} className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-full font-semibold hover:bg-slate-100 hover:scale-105 transition-all text-sm">
                     <Plus className="w-4 h-4" /> Invite Member
                   </button>
                 )}
@@ -533,8 +533,8 @@ const Settings: React.FC = () => {
               <span className="text-slate-500">({logic.leaveRequests.length})</span>
             </div>
             {logic.leaveRequests.map((request) => (
-              <div key={request._id} className="flex items-center justify-between p-6 bg-slate-900/30 border border-slate-800/50 rounded-xl hover:border-slate-700/50 transition-all">
-                <div className="flex items-center gap-4">
+              <div key={request._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6 bg-slate-900/30 border border-slate-800/50 rounded-xl hover:border-slate-700/50 transition-all">
+                <div className="flex items-start sm:items-center gap-4">
                   <div className="w-12 h-12 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center justify-center">
                     <UserMinus className="w-6 h-6 text-orange-400" />
                   </div>
@@ -544,7 +544,7 @@ const Settings: React.FC = () => {
                     <p className="text-xs text-slate-500 mt-0.5">Requested {new Date(request.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <button onClick={() =>
                     setConfirmAction({
                       title: "Approve Leave Request",
@@ -560,7 +560,7 @@ const Settings: React.FC = () => {
                       confirmTone: "success",
                       onConfirm: () => logic.handleApproveLeaveRequest(request._id),
                     })
-                  } className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20 transition-all text-sm font-medium">
+                  } className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20 transition-all text-sm font-medium">
                     <Check className="w-4 h-4" /> Approve
                   </button>
                   <button onClick={() =>
@@ -580,7 +580,7 @@ const Settings: React.FC = () => {
                       reasonPlaceholder: "Why are you rejecting this leave request?",
                       onConfirm: (reason) => logic.handleRejectLeaveRequest(request._id, reason),
                     })
-                  } className="flex items-center gap-2 px-4 py-2 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-all text-sm font-medium">
+                  } className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-all text-sm font-medium">
                     <X className="w-4 h-4" /> Reject
                   </button>
                 </div>
@@ -671,12 +671,12 @@ const Settings: React.FC = () => {
           <div className="space-y-8">
             <div>
               <SectionHeader color="from-emerald-500 to-green-500" title="Current Subscription" />
-              <div className="mt-5 bg-slate-900/30 border border-slate-800/50 rounded-2xl p-8">
-                <div className="flex items-center justify-between mb-8">
+              <div className="mt-5 bg-slate-900/30 border border-slate-800/50 rounded-2xl p-4 sm:p-6 lg:p-8">
+                <div className="flex items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
                   <div>
-                    <h3 className="text-3xl font-bold text-white mb-1 capitalize">{logic.billingInfo.plan.name} Plan</h3>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-white mb-1 capitalize">{logic.billingInfo.plan.name} Plan</h3>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold text-white">${logic.billingInfo.plan.price}</span>
+                      <span className="text-3xl sm:text-4xl font-bold text-white">${logic.billingInfo.plan.price}</span>
                       <span className="text-slate-400">/month</span>
                     </div>
                   </div>
@@ -729,7 +729,7 @@ const Settings: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="mt-5 bg-slate-900/30 border border-slate-800/50 rounded-2xl p-12 text-center">
+                <div className="mt-5 bg-slate-900/30 border border-slate-800/50 rounded-2xl p-6 sm:p-10 lg:p-12 text-center">
                   <Bell className="w-12 h-12 text-slate-600 mx-auto mb-4" />
                   <p className="text-slate-400 text-lg font-medium">No notifications yet</p>
                   <p className="text-slate-500 text-sm mt-2">Your notifications will appear here</p>
@@ -751,7 +751,7 @@ const Settings: React.FC = () => {
             {/* Notification Preferences Section */}
             <div>
               <SectionHeader color="from-amber-500 to-orange-500" title="Notification Preferences" />
-              <div className="flex gap-2 mt-5">
+              <div className="flex flex-wrap gap-2 mt-5">
                 {([['email', 'Email', Mail], ['push', 'Push', Bell], ['sms', 'SMS', Phone]] as any[]).map(([id, label, Icon]) => (
                   <button
                     key={id}
@@ -838,7 +838,7 @@ const Settings: React.FC = () => {
                               <p className="text-slate-500 text-xs mt-1">Reason: {request.reason}</p>
                             )}
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <button
                               onClick={() =>
                                 setConfirmAction({
@@ -894,10 +894,10 @@ const Settings: React.FC = () => {
             <div className="pt-8">
               <SectionHeader color="from-red-600 to-red-800" title="Danger Zone" />
               <div className="mt-5 space-y-3">
-                <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-900/30 border border-slate-800/50 text-slate-300 rounded-xl hover:bg-slate-900/50 transition-all text-sm font-medium">
+                <button className="w-full sm:w-auto flex items-center gap-2 px-5 py-2.5 bg-slate-900/30 border border-slate-800/50 text-slate-300 rounded-xl hover:bg-slate-900/50 transition-all text-sm font-medium">
                   <Download className="w-4 h-4" /> Export All Data
                 </button>
-                <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-900/30 border border-slate-800/50 text-slate-300 rounded-xl hover:bg-slate-900/50 transition-all text-sm font-medium">
+                <button className="w-full sm:w-auto flex items-center gap-2 px-5 py-2.5 bg-slate-900/30 border border-slate-800/50 text-slate-300 rounded-xl hover:bg-slate-900/50 transition-all text-sm font-medium">
                   <FileText className="w-4 h-4" /> Download Compliance Report
                 </button>
                 {logic.isOwner && (
@@ -917,7 +917,7 @@ const Settings: React.FC = () => {
                         onConfirm: () => logic.handleDeleteOrganization(),
                       })
                     }
-                    className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500/20 transition-all text-sm font-medium"
+                    className="w-full sm:w-auto flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500/20 transition-all text-sm font-medium"
                   >
                     <Trash2 className="w-4 h-4" /> Delete Organization Permanently
                   </button>
@@ -940,7 +940,7 @@ const Settings: React.FC = () => {
                       },
                     })
                   }
-                  className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500/20 transition-all text-sm font-medium"
+                  className="w-full sm:w-auto flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500/20 transition-all text-sm font-medium"
                 >
                   <Trash2 className="w-4 h-4" /> Delete My Account
                 </button>
@@ -1052,7 +1052,7 @@ function ActionConfirmCard({
               />
             </div>
           )}
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
             <button
               onClick={onCancel}
               disabled={isLoading}
@@ -1085,7 +1085,7 @@ function SectionHeader({ color, title }: { color: string; title: string }) {
   return (
     <div className="flex items-center gap-2">
       <div className={`w-1 h-6 bg-gradient-to-b ${color} rounded-full`} />
-      <h2 className="text-xl font-bold text-white">{title}</h2>
+      <h2 className="text-lg sm:text-xl font-bold text-white">{title}</h2>
     </div>
   );
 }
@@ -1101,7 +1101,7 @@ function FieldGroup({ label, children }: { label: string; children: React.ReactN
 
 function SaveButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button onClick={onClick} className="group flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-900 rounded-full font-semibold transition-all hover:scale-105 text-sm">
+    <button onClick={onClick} className="w-full sm:w-auto group flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-900 rounded-full font-semibold transition-all hover:scale-105 text-sm">
       <Check className="w-4 h-4" />
       {label}
       <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -1146,7 +1146,7 @@ function TeamMemberCard({ member, onRemove, onUpdateRole, getInitials, showMenu,
     member: 'text-slate-400 bg-slate-500/10',
   };
   return (
-    <div className="bg-slate-900/30 border border-slate-800/50 rounded-2xl p-6 hover:border-slate-700/50 transition-all">
+    <div className="bg-slate-900/30 border border-slate-800/50 rounded-2xl p-4 sm:p-6 hover:border-slate-700/50 transition-all">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3">
           <Avatar className="w-11 h-11 border-2 border-slate-700/50">
@@ -1207,8 +1207,8 @@ function TeamMemberCard({ member, onRemove, onUpdateRole, getInitials, showMenu,
 
 function PendingInviteCard({ invite, onRevoke }: any) {
   return (
-    <div className="flex items-center justify-between p-4 bg-slate-900/30 border border-slate-800/50 rounded-xl hover:border-slate-700/50 transition-all">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-slate-900/30 border border-slate-800/50 rounded-xl hover:border-slate-700/50 transition-all">
+      <div className="flex items-start sm:items-center gap-3">
         <div className="w-9 h-9 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center justify-center">
           <Mail className="w-4 h-4 text-amber-400" />
         </div>
@@ -1219,9 +1219,9 @@ function PendingInviteCard({ invite, onRevoke }: any) {
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full sm:w-auto">
         <span className="px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs font-semibold text-amber-400">Pending</span>
-        <button onClick={() => onRevoke(invite._id)} className="px-3 py-1.5 text-xs text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-all font-medium">Revoke</button>
+        <button onClick={() => onRevoke(invite._id)} className="ml-auto sm:ml-0 px-3 py-1.5 text-xs text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-all font-medium">Revoke</button>
       </div>
     </div>
   );
@@ -1277,7 +1277,7 @@ function NotificationRow({ settingKey, value, onToggle }: { settingKey: string; 
   };
   const title = settingKey.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
   return (
-    <div className="flex items-center justify-between p-4 bg-slate-900/30 border border-slate-800/50 rounded-xl hover:border-slate-700/50 transition-all">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-slate-900/30 border border-slate-800/50 rounded-xl hover:border-slate-700/50 transition-all">
       <div>
         <h4 className="text-white font-semibold text-sm">{title}</h4>
         <p className="text-xs text-slate-500 mt-0.5">{descriptions[settingKey]}</p>
@@ -1289,7 +1289,7 @@ function NotificationRow({ settingKey, value, onToggle }: { settingKey: string; 
 
 function SecurityRow({ title, description, defaultChecked = false }: { title: string; description: string; defaultChecked?: boolean }) {
   return (
-    <div className="flex items-center justify-between p-4 bg-slate-900/30 border border-slate-800/50 rounded-xl hover:border-slate-700/50 transition-all">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-slate-900/30 border border-slate-800/50 rounded-xl hover:border-slate-700/50 transition-all">
       <div>
         <h4 className="text-white font-semibold text-sm">{title}</h4>
         <p className="text-xs text-slate-500 mt-0.5">{description}</p>
@@ -1314,7 +1314,7 @@ function IntegrationCard({ integration, onConnect, onDisconnect, onSync }: any) 
           {integration.lastSync && <p className="text-xs text-slate-500 mt-0.5">Last sync: {new Date(integration.lastSync).toLocaleDateString()}</p>}
         </div>
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         {isConnected ? (
           <>
             <button onClick={onSync} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-800/50 border border-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-800 transition-all text-xs font-medium">
@@ -1355,7 +1355,7 @@ function InviteModal({ isOpen, onClose, inviteAccountId, setInviteAccountId, inv
               className="w-full px-4 py-3 bg-slate-800/60 border border-slate-700/60 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all" />
           </FieldGroup>
         </div>
-        <div className="flex gap-3 border-t border-slate-800/50 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 border-t border-slate-800/50 pt-4">
           <button onClick={onClose} className="flex-1 py-2.5 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-700/30 transition-all font-semibold text-sm">Cancel</button>
           <button onClick={onInvite} className="flex-1 py-2.5 bg-white hover:bg-slate-100 text-slate-900 rounded-xl font-semibold transition-all text-sm">Send Invitation</button>
         </div>
@@ -1391,7 +1391,7 @@ function ZillowModal({ isOpen, onClose, credentials, setCredentials, onConnect }
             ))}
           </div>
         </div>
-        <div className="flex gap-3 border-t border-slate-800/50 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 border-t border-slate-800/50 pt-4">
           <button onClick={onClose} className="flex-1 py-2.5 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-700/30 transition-all font-semibold text-sm">Cancel</button>
           <button onClick={onConnect} className="flex-1 py-2.5 bg-white hover:bg-slate-100 text-slate-900 rounded-xl font-semibold transition-all text-sm">Connect Zillow</button>
         </div>
@@ -1427,7 +1427,7 @@ function RealtorModal({ isOpen, onClose, credentials, setCredentials, onConnect 
             ))}
           </div>
         </div>
-        <div className="flex gap-3 border-t border-slate-800/50 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 border-t border-slate-800/50 pt-4">
           <button onClick={onClose} className="flex-1 py-2.5 border border-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-700/30 transition-all font-semibold text-sm">Cancel</button>
           <button onClick={onConnect} className="flex-1 py-2.5 bg-white hover:bg-slate-100 text-slate-900 rounded-xl font-semibold transition-all text-sm">Connect Realtor.com</button>
         </div>
