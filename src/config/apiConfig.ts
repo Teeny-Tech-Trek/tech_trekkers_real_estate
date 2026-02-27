@@ -14,7 +14,7 @@ import axios, { AxiosError } from 'axios';
 import { getCookie, setCookie, eraseCookie } from '../lib/utils';
 
 export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  import.meta.env.VITE_API_URL || 'https://api.estate.techtrekkers.ai/api';
 
 /**
  * Create axios instance with base configuration
