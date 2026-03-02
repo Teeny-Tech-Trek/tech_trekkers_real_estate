@@ -94,6 +94,10 @@ export const useLoginForm = () => {
     navigate('/signup');
   };
 
+  const navigateToForgotPassword = () => {
+    navigate('/forgot-password');
+  };
+
   return {
     formData,
     showPassword,
@@ -101,6 +105,7 @@ export const useLoginForm = () => {
     handleChange,
     togglePasswordVisibility,
     navigateToSignup,
+    navigateToForgotPassword,
     isLoading,
     error,
     features

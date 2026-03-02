@@ -17,6 +17,8 @@ import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import AgentChatPage from "./pages/AgentChatPage";
 import AcceptInvitePage from "./pages/AcceptInvitePage";
@@ -65,6 +67,20 @@ const App = () => (
                 <Navbar />
                 <Signup />
                     <Footer />
+              </>
+            } />
+            <Route path="/forgot-password" element={
+              <>
+                <Navbar />
+                <ForgotPassword />
+                <Footer />
+              </>
+            } />
+            <Route path="/reset-password/:token" element={
+              <>
+                <Navbar />
+                <ResetPassword />
+                <Footer />
               </>
             } />
             <Route path="/accept-invite" element={<AcceptInvitePage />} />

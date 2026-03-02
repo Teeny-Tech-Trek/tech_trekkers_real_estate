@@ -10,6 +10,7 @@ const Login = () => {
     handleChange,
     togglePasswordVisibility,
     navigateToSignup,
+    navigateToForgotPassword,
     features,
   } = useLoginForm();
 
@@ -115,6 +116,7 @@ const Login = () => {
                 </div>
                 <button
                   type="button"
+                  onClick={navigateToForgotPassword}
                   className="text-sm text-gray-300 transition hover:text-white"
                 >
                   Forgot password?

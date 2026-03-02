@@ -34,4 +34,21 @@ export const isAuthenticated = (): boolean => Boolean(getCookie("accessToken"));
 
 export const getAccessToken = (): string | null => getCookie("accessToken");
 
+export const forgotPassword = async (email: string): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>("/auth/forgot-password", { email });
+  return response.data;
+};
+
+export const resetPassword = async (
+  token: string,
+  password: string,
+  confirmPassword: string
+): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>(`/auth/reset-password/${token}`, {
+    password,
+    confirmPassword,
+  });
+  return response.data;
+};
+
 export default api;
