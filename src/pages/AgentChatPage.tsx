@@ -43,14 +43,15 @@ const AgentChatPage = () => {
       try {
         setLoading(true);
         setError(null);
-        const [agentData, history] = await Promise.all([
-          agentService.getPublicAgent(id),
-          agentService.getAgentChatHistory(id),
-        ]);
+        const agentData = await agentService.getPublicAgent(id);
+        const historyResult = await agentService
+          .getAgentChatHistory(id)
+          .then((history) => ({ history }))
+          .catch(() => ({ history: [] as AgentChatMessage[] }));
 
         if (!mounted) return;
         setAgent(agentData);
-        setMessages(history || []);
+        setMessages(historyResult.history || []);
       } catch (err) {
         if (!mounted) return;
         setError(err instanceof Error ? err.message : "Failed to load chat");
